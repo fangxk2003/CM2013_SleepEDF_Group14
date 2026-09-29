@@ -84,7 +84,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin   # noqa: E402
 
 # make the shared bsp package (and this flat tracks/ dir) importable from anywhere
 _HERE = os.path.dirname(os.path.abspath(__file__))
-for _p in (_HERE, os.path.join(_HERE, "..", "src"), os.path.join(_HERE, "..", "src", "bsp")):
+for _p in (_HERE, os.path.join(_HERE, "src"), os.path.join(_HERE, "src", "bsp")):
     _p = os.path.normpath(_p)
     if _p not in sys.path:
         sys.path.insert(0, _p)
