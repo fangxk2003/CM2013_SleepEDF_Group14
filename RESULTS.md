@@ -1,4 +1,4 @@
-# Results log — `<your track>`, `<your team>`
+# Results log — `Sleep EDF`, `Group 14`
 
 > **Copy this file into YOUR team's project repository** (not this scaffold repo) as
 > `RESULTS.md`, and add one row per iteration as you go — not the night before the deadline.
