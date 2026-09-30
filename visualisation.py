@@ -2,11 +2,11 @@
 
 Run without arguments to visualise an offline synthetic recording:
 
-	python test.py
+	python visualisation.py
 
 To visualise downloaded Sleep-EDF data instead:
 
-	python test.py --cache-dir sleep_edf_data --record 0 --epoch 10
+	python visualisation.py --cache-dir sleep_edf_data --record 0 --epoch 10
 """
 from __future__ import annotations
 
