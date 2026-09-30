@@ -17,9 +17,9 @@
 > weakness. Rows here are also direct evidence for "Reproducibility & engineering" and "Report
 > quality & defence".
 
-**Track:** `<sleep_edf | ecg_cinc2017 | har | ctg_ctu_uhb | emg_ninapro | bci_eegmmidb>` ·
-**Split unit:** `<subject | record | recording>` · **Primary metric:** `<Cohen's κ | macro-F1>` ·
-**Evaluation mode(s):** `<new-subject | within-subject + new-subject>`
+**Track:** `sleep_edf` ·
+**Split unit:** `subject` · **Primary metric:** Cohen's kappa ·
+**Evaluation mode:** new-subject (LOSO for this five-subject smoke run)
 
 ## Iteration log
 
@@ -29,7 +29,7 @@ spread is half a result.
 
 | # | Date | What changed & why (one line) | Primary metric **with spread** | Better than previous? | If not — why it was kept | Commit |
 |---|---|---|---|---|---|---|
-| 1 | 2026-09-29 | *e.g.* supplied baseline, unchanged — establish the floor | mean κ 0.41 (sd 0.09, range 0.29–0.55 across 6 subjects) | — (baseline) | — | `a1b2c3d` |
+| 1 (smoke only) | 2026-09-30 | Supplied baseline on synthetic medium-difficulty data | mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects) | Baseline | Functional check only | Source HEAD `0a48f51`; result log not yet committed |
 | 2 |  |  |  | yes / no |  |  |
 | 3 |  |  |  | yes / no |  |  |
 | 4 |  |  |  | yes / no |  |  |
@@ -39,6 +39,79 @@ same seed. A change that lowers the metric can still be the right call (simpler,
 robust across subjects, removes a leak). Say so in the column instead of quietly reverting it:
 "kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a
 silent higher mean.*
+
+## Synthetic smoke-test evidence - 2026-09-30
+
+PASS. These are synthetic-data results, not performance on real Sleep-EDF.
+
+### Configuration
+
+- Data: `track.smoke(n_subjects=5, n_epochs=80, seed=0, difficulty="medium")`.
+- 400 labelled 30-second epochs, 100 Hz, 11 supplied features per epoch.
+- Preprocessing: `none`; spectral estimator: `welch`; feature selection: `none`.
+- Classifier: `adapter.default_baseline(seed=0, n_estimators=200, imbalance="balanced")`.
+- Pipeline: 200-tree random forest (balanced class weights) -> StandardScaler
+- Validation: five LOSO folds; 320 training and 80 test epochs per fold.
+- Environment: Python 3.13.3; NumPy 2.5.3; SciPy 1.18.1; scikit-learn 1.9.1; Matplotlib 3.11.2.
+
+### Results
+
+| Pooled metric | Harness value |
+|---|---|
+| Accuracy | 0.753 |
+| Cohen's kappa | 0.677 |
+| Macro-F1 | 0.730 |
+| Balanced accuracy | 0.747 |
+
+Harness summary: `mean cohens_kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects)`.
+
+| Held-out subject | Epochs | Accuracy | Kappa | Macro-F1 |
+|---|---|---|---|---|
+| S01 | 80 | 0.9125 | 0.867862 | 0.894755 |
+| S02 | 80 | 0.3125 | 0.155470 | 0.354552 |
+| S03 | 80 | 0.7125 | 0.615706 | 0.487004 |
+| S04 | 80 | 0.9500 | 0.933040 | 0.951562 |
+| S05 | 80 | 0.8750 | 0.837662 | 0.862940 |
+
+Confusion matrix: rows are true labels, columns are predicted labels.
+
+| True \ predicted | W | N1 | N2 | N3 | REM |
+|---|---|---|---|---|---|
+| W | 28 | 1 | 0 | 0 | 13 |
+| N1 | 7 | 25 | 7 | 0 | 2 |
+| N2 | 0 | 38 | 103 | 12 | 2 |
+| N3 | 0 | 1 | 12 | 71 | 0 |
+| REM | 1 | 1 | 2 | 0 | 74 |
+
+Observed labels: W=42, N1=41, N2=155, N3=84, REM=78. The largest confusion is N2 predicted as N1 (38 epochs). S02 is much weaker than the other subjects, the pooled score alone hides this.
+
+### Code
+
+```bash
+import numpy as np
+from adapter import default_baseline
+from sleep_edf import SleepEDFTrack
+
+track = SleepEDFTrack()
+recs = track.smoke(n_subjects=5, n_epochs=80, seed=0, difficulty="medium")
+X, y, groups = track.build_dataset(recs)
+assert X.shape == (400, 11) and np.isfinite(X).all()
+clf = default_baseline(seed=0, n_estimators=200, imbalance="balanced")
+rep = track.evaluate(X, y, groups, clf=clf)
+assert len(rep["y_pred"]) == len(y) == 400
+assert rep["n_groups"] == len(rep["per_fold"]) == 5
+assert np.asarray(rep["confusion"]).sum() == 400
+assert all(np.isfinite(rep[k]) for k in (
+    "accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy"))
+repeat = track.run_smoke()
+assert np.array_equal(rep["y_true"], repeat["y_true"])
+assert np.array_equal(rep["y_pred"], repeat["y_pred"])
+print(rep["summary"])
+for key in ("accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy",
+            "labels", "confusion", "per_group", "spread"):
+    print(key, rep[key])
+print("PASS: shape, finite values, prediction count, five folds, confusion total, repeatability")
+```
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
