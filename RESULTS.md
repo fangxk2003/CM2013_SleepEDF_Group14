@@ -30,7 +30,7 @@ spread is half a result.
 | # | Date | What changed & why (one line) | Primary metric **with spread** | Better than previous? | If not — why it was kept | Commit |
 |---|---|---|---|---|---|---|
 | 1 (smoke only) | 2026-09-30 | Supplied baseline on synthetic medium-difficulty data | mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects) | Baseline | Functional check only | Source HEAD `0a48f51`; result log not yet committed |
-| 1b (real baseline) | 2026-10-02 | Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes | mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects) | Baseline on real data | - |  |
+| 1b (real baseline) | 2026-10-02 | Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes | mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects) | Baseline on real data | - | `69d392f` |
 | 3 |  |  |  | yes / no |  |  |
 | 4 |  |  |  | yes / no |  |  |
 
