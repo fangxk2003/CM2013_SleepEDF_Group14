@@ -1,0 +1,118 @@
+{
+  "data_kind": "real Sleep-EDF, not synthetic",
+  "started_utc": "2026-10-01T19:39:26.289176+00:00",
+  "finished_utc": "2026-10-01T19:39:45.339617+00:00",
+  "cache_dir": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/sleep_edf_data",
+  "files": [
+    {
+      "path": "physionet-sleep-data/SC4001E0-PSG.edf",
+      "bytes": 48338048,
+      "sha256": "2b40a18adf76af69a42d6db1f30f31d26b369f6d27ca0050ef30147ef892b131"
+    },
+    {
+      "path": "physionet-sleep-data/SC4001EC-Hypnogram.edf",
+      "bytes": 4620,
+      "sha256": "a4cf67694ade1b52a0ddd06d5817fd45d2d3e8bac5302f640f3e9cfbbf12a996"
+    },
+    {
+      "path": "physionet-sleep-data/SC4011E0-PSG.edf",
+      "bytes": 51110528,
+      "sha256": "9e4c34f3f631275990fd7a2d61a24e998c7b03eb9b37ebe5cd7c8323d8310a15"
+    },
+    {
+      "path": "physionet-sleep-data/SC4011EH-Hypnogram.edf",
+      "bytes": 3896,
+      "sha256": "5bbf7b4ed8a95c8d20e4347b08c2ded2ee21e2dac4680dedf629795adc2edc83"
+    },
+    {
+      "path": "physionet-sleep-data/SC4021E0-PSG.edf",
+      "bytes": 51147008,
+      "sha256": "810adaedf42621e389ca767274045fbafb123bbc5d99bc15ce2c5bacb52e378c"
+    },
+    {
+      "path": "physionet-sleep-data/SC4021EH-Hypnogram.edf",
+      "bytes": 4804,
+      "sha256": "62b49b26bf08941cb0e974cfeeb0a820bf7dd43fb0c66dd89b4c3a6c0ee45dd8"
+    }
+  ],
+  "config": {
+    "seed": 0,
+    "preprocess": "none",
+    "spectral_method": "welch",
+    "select": "none",
+    "loso_max_groups": 3
+  },
+  "classifier": {
+    "factory": "adapter.default_baseline",
+    "seed": 0,
+    "n_estimators": 200,
+    "imbalance": "balanced"
+  },
+  "cropping": "none",
+  "epoch_seconds": 30,
+  "fs": 100,
+  "feature_shape": [
+    8256,
+    11
+  ],
+  "feature_names": [
+    "eeg_delta",
+    "eeg_theta",
+    "eeg_alpha",
+    "eeg_sigma",
+    "eeg_beta",
+    "eeg_hjorth_activity",
+    "eeg_hjorth_mobility",
+    "eeg_hjorth_complexity",
+    "eeg_spec_entropy",
+    "eog_movement",
+    "emg_rms"
+  ],
+  "subjects": [
+    "SC400",
+    "SC401",
+    "SC402"
+  ],
+  "recordings": [
+    {
+      "record": "SC4001E0",
+      "subject": "SC400",
+      "epochs": 2650
+    },
+    {
+      "record": "SC4011E0",
+      "subject": "SC401",
+      "epochs": 2802
+    },
+    {
+      "record": "SC4021E0",
+      "subject": "SC402",
+      "epochs": 2804
+    }
+  ],
+  "class_counts": {
+    "N1": 261,
+    "N2": 1357,
+    "N3": 420,
+    "REM": 458,
+    "W": 5760
+  },
+  "python": "3.13.3",
+  "packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "mne": "1.13.2"
+  },
+  "source_head": "dde6e44419ce6f8254717e1c7d3d027620a8cff3",
+  "working_tree_status": "?? .gitignore\n?? run_baseline.py\n",
+  "source_sha256": {
+    "run_baseline.py": "84d03a5f5f5721a613531b58740a50709aadc62bea4e7d7cd99a41f1b54a9054",
+    "sleep_edf.py": "a56d11fa154357130a276709702cb81de9491a8982d55ef55ebdfcd835f9c3f7",
+    "adapter.py": "09bc214fb4ad2d5420454cbe3e7c85d8e69b0517ed192b29fa8f156bbc0cf58c",
+    "src/bsp/sleep_pipeline.py": "a9cc1ec301b24a449c0bc986ee36c9b37ac332073251a6cffd98b98fbf631569",
+    "src/bsp/biosignals.py": "4269d9733c7fadf2a97abd0e94c13f63bfec1fb6070f55d33c5950955a6081cd",
+    "src/bsp/metrics.py": "ebe679a66b8a626de450698e13e0e718edb9b8055756ad6d98163542d86095c5",
+    "src/bsp/notebook_checks.py": "87664b9dda0a5d834565fead9222ddfff17821499617a5eb9b3dc7d8d6c36977"
+  }
+}
