@@ -12,7 +12,7 @@ def main():
     args = parser.parse_args()
     data_dir = args.cache_dir.resolve()
     data_dir.mkdir(parents=True, exist_ok=True)
-    for psg, hypnogram in fetch_data(subjects=[0, 1, 2], recording=[1], path=str(data_dir)):
+    for psg, hypnogram in fetch_data(subjects=[0, 1, 2], recording=[1, 2], path=str(data_dir)):
         print("Signals:", psg)
         print("Labels: ", hypnogram)
 
