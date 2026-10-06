@@ -52,9 +52,9 @@ def main():
                         help="New output directory; existing directories are never overwritten.")
     parser.add_argument(
         "--preprocess",
-        choices=["none","bandpass"], 
+        choices=["none","bandpass", "wavelet"], 
         default="none",
-        help="Preprocessing experiment : none=P0, bandpass=P1 EEG 0.5-40Hz"
+        help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising"
     )
     args = parser.parse_args()
     cache = args.cache_dir.resolve()
@@ -72,7 +72,11 @@ def main():
     manifest = [{"path": str(p.relative_to(cache)), "bytes": p.stat().st_size,
                  "sha256": sha256(p)} for p in input_files]
     started = datetime.now(timezone.utc)
-    experiment = "P0" if args.preprocess == "none" else "P1"
+    experiment = {
+        "none": "P0",
+        "bandpass": "P1",
+        "wavelet": "P2",
+    }[args.preprocess]
     output = (args.output_dir or ROOT / "results" /
               f"real__{experiment}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
     if output.exists():

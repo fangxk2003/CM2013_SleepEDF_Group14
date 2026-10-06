@@ -4,7 +4,7 @@ from typing import Literal
 
 import numpy as np
 
-from ..reference.adapter import Recording, bandpass_notch
+from ..reference.adapter import Recording, bandpass_notch, wavelet_denoise
 
 
 
@@ -36,7 +36,14 @@ class WaveletDenoising:
     threshold_mode: Literal["soft", "hard"] = "soft"
 
     def transform(self, recording: Recording) -> Recording:
-        raise NotImplementedError("P2: wavelet denoising is a planned experiment.")
+        return wavelet_denoise(
+            recording,
+            wavelet=self.wavelet,
+            level=self.level,
+            threshold_mode=self.threshold_mode,
+            threshold=None,
+            channels=("eeg",),
+        )
 
 
 @dataclass

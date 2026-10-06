@@ -33,6 +33,7 @@ spread is half a result.
 | 1b (real baseline) | 2026-10-02 | Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes | mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects) | Baseline on real data | - | `69d392f` |
 | 2a | 2026-10-06 | P0: current baseline on 3 subjects × 2 nights, no preprocessing, to establish the development reference | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | Baseline for Iteration 2 development experiments | - | `e6cada5` |
 | 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
+| 2c | 2026-10-06 | P2: EEG wavelet denoising using db4, automatic decomposition level (max 5), soft thresholding and automatic per-epoch VisuShrink threshold; EOG and EMG unchanged | mean Cohen's kappa 0.743 (sd 0.065, range 0.669–0.781 across 3 subjects) | Yes vs P0; only marginally higher kappa than P1, with lower macro-F1 and balanced accuracy | P1 retained as the current preprocessing candidate because it provides more balanced stage-wise performance | |
 | 4 |  |  |  | yes / no |  |  |
 
 *"Better" means better under the same honest harness — same split unit, same evaluation mode,
@@ -113,42 +114,52 @@ for key in ("accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy",
     print(key, rep[key])
 print("PASS: shape, finite values, prediction count, five folds, confusion total, repeatability")
 ```
-### P0 vs P1 preprocessing comparison — 2026-10-06
+### P0 vs P1 vs P2 preprocessing comparison — 2026-10-06
 
-Development subset: 3 subjects (SC400, SC401, SC402), 2 nights per subject,
-6 recordings and 16,688 epochs. Both experiments used the same 11 supplied
-features, Random Forest baseline classifier, no cropping, and 3-fold
-Leave-One-Subject-Out evaluation.
+Development subset: 3 subjects (SC400, SC401, SC402), 2 nights per subject, 6 recordings and 16,688 epochs. The dataset, 11 supplied features, Random Forest classifier and subject-wise LOSO evaluation were kept unchanged across all three experiments. Only the preprocessing step was changed.
 
-| Metric | P0: none | P1: EEG 0.5–40 Hz | Change |
+- P0: no preprocessing.
+- P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; EOG and EMG unchanged.
+- P2: EEG wavelet denoising using db4, automatic decomposition level capped at 5, soft thresholding and an automatically estimated per-epoch VisuShrink threshold; EOG and EMG unchanged.
+
+
+| Metric | P0 | P1 | P2 |
 |---|---:|---:|---:|
-| Accuracy | 0.849 | 0.868 | +0.019 |
-| Pooled Cohen's kappa | 0.710 | 0.742 | +0.032 |
-| Macro-F1 | 0.648 | 0.683 | +0.035 |
-| Balanced accuracy | 0.650 | 0.680 | +0.030 |
-| Mean subject kappa | 0.704 | 0.737 | +0.033 |
-| Subject kappa SD | 0.087 | 0.074 | -0.013 |
-| Subject kappa range | 0.627–0.799 | 0.666–0.813 | — |
+| Mean subject Cohen's kappa | 0.704 | 0.737 | **0.743** |
+| SD subject Cohen's kappa | 0.087 | 0.074 | **0.065** |
+| Subject kappa range | 0.627–0.799 | 0.666–0.813 | 0.669–0.781 |
+| Accuracy | 0.849 | 0.868 | **0.872** |
+| Pooled Cohen's kappa | 0.710 | 0.742 | **0.747** |
+| Macro-F1 | 0.648 | **0.683** | 0.677 |
+| Balanced accuracy | 0.650 | **0.680** | 0.666 |
 
 Per-stage recall also increased for all five stages:
 
-| Stage | P0 | P1 |
-|---|---:|---:|
-| W | 0.917 | 0.933 |
-| N1 | 0.408 | 0.416 |
-| N2 | 0.900 | 0.905 |
-| N3 | 0.460 | 0.533 |
-| REM | 0.566 | 0.611 |
+| Stage | P0 | P1 | P2 |
+|---|---:|---:|---:|
+| W | 0.918 | 0.933 | **0.944** |
+| N1 | 0.408 | **0.416** | 0.315 |
+| N2 | 0.900 | **0.905** | 0.897 |
+| N3 | 0.460 | **0.533** | 0.513 |
+| REM | 0.566 | 0.611 | **0.660** |
 
+P0 VS P1
 The largest recall improvements were observed for N3 and REM. N3→N2
 confusions decreased from 320 to 273 epochs and REM→N2 confusions from
 356 to 313 epochs.
 
-**Decision:** retain the 0.5–40 Hz EEG band-pass as the current preprocessing
+P0 VS P2, P2 VS P1
+P2 improved substantially over P0 in the primary metric (mean subject Cohen's kappa: 0.704 to 0.743) and also reduced between-subject variability (SD: 0.087 to 0.065). It also improved Wake, N3 and REM recall relative to P0. However, the comparison between P1 and P2 was less clear. P2 increased mean subject kappa by only 0.006 and pooled kappa by 0.005 relative to P1, while macro-F1 decreased from 0.683 to 0.677 and balanced accuracy decreased from 0.680 to 0.666.
+
+The main stage-level trade-off was N1. Its recall decreased from 0.416 with P1 to 0.315 with P2. N2 recall also decreased slightly from 0.905 to 0.897, while REM recall improved from 0.611 to 0.660.
+
+**Decision:** 
+P1 : retain the 0.5–40 Hz EEG band-pass as the current preprocessing
 candidate. It improved all primary and secondary metrics on the development
 subset and reduced between-subject kappa variability. This decision remains
 provisional until the selected final pipeline is evaluated on a larger
 subject set.
+P2 : Decision: P2 is considered beneficial relative to P0, but not clearly superior to P1. The small improvement in the primary metric is accompanied by less balanced stage-wise performance, particularly for N1. P1 is therefore retained as the current preprocessing candidate for subsequent development experiments. This decision remains provisional because the comparison is based on only three development subjects.
 
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
@@ -203,7 +214,8 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | Pipeline module | Option chosen | Alternative(s) considered | Why this one (one sentence) | Iteration | Revised later? |
 |---|---|---|---|---|---|
 | 1. Data loading | *e.g.* 8 subjects, both nights | more subjects, one night each | subject-level split needs both nights inside one group | 1 | — |
-| 2. Preprocessing | EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
+| 2. Preprocessing — P1 band-pass filtering| EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
+| 2. Preprocessing — P2 wavelet denoising | Not retained; P1 remains the current preprocessing choice | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | No |
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
