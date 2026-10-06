@@ -31,7 +31,8 @@ spread is half a result.
 |---|---|---|---|---|---|---|
 | 1 (smoke only) | 2026-09-30 | Supplied baseline on synthetic medium-difficulty data | mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects) | Baseline | Functional check only | Source HEAD `0a48f51`; result log not yet committed |
 | 1b (real baseline) | 2026-10-02 | Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes | mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects) | Baseline on real data | - | `69d392f` |
-| 3 |  |  |  | yes / no |  |  |
+| 2a | 2026-10-06 | P0: current baseline on 3 subjects × 2 nights, no preprocessing, to establish the development reference | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | Baseline for Iteration 2 development experiments | - | `e6cada5` |
+| 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
 | 4 |  |  |  | yes / no |  |  |
 
 *"Better" means better under the same honest harness — same split unit, same evaluation mode,
@@ -112,6 +113,43 @@ for key in ("accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy",
     print(key, rep[key])
 print("PASS: shape, finite values, prediction count, five folds, confusion total, repeatability")
 ```
+### P0 vs P1 preprocessing comparison — 2026-10-06
+
+Development subset: 3 subjects (SC400, SC401, SC402), 2 nights per subject,
+6 recordings and 16,688 epochs. Both experiments used the same 11 supplied
+features, Random Forest baseline classifier, no cropping, and 3-fold
+Leave-One-Subject-Out evaluation.
+
+| Metric | P0: none | P1: EEG 0.5–40 Hz | Change |
+|---|---:|---:|---:|
+| Accuracy | 0.849 | 0.868 | +0.019 |
+| Pooled Cohen's kappa | 0.710 | 0.742 | +0.032 |
+| Macro-F1 | 0.648 | 0.683 | +0.035 |
+| Balanced accuracy | 0.650 | 0.680 | +0.030 |
+| Mean subject kappa | 0.704 | 0.737 | +0.033 |
+| Subject kappa SD | 0.087 | 0.074 | -0.013 |
+| Subject kappa range | 0.627–0.799 | 0.666–0.813 | — |
+
+Per-stage recall also increased for all five stages:
+
+| Stage | P0 | P1 |
+|---|---:|---:|
+| W | 0.917 | 0.933 |
+| N1 | 0.408 | 0.416 |
+| N2 | 0.900 | 0.905 |
+| N3 | 0.460 | 0.533 |
+| REM | 0.566 | 0.611 |
+
+The largest recall improvements were observed for N3 and REM. N3→N2
+confusions decreased from 320 to 273 epochs and REM→N2 confusions from
+356 to 313 epochs.
+
+**Decision:** retain the 0.5–40 Hz EEG band-pass as the current preprocessing
+candidate. It improved all primary and secondary metrics on the development
+subset and reduced between-subject kappa variability. This decision remains
+provisional until the selected final pipeline is evaluated on a larger
+subject set.
+
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
@@ -165,7 +203,7 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | Pipeline module | Option chosen | Alternative(s) considered | Why this one (one sentence) | Iteration | Revised later? |
 |---|---|---|---|---|---|
 | 1. Data loading | *e.g.* 8 subjects, both nights | more subjects, one night each | subject-level split needs both nights inside one group | 1 | — |
-| 2. Preprocessing |  |  |  |  |  |
+| 2. Preprocessing | EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
@@ -194,7 +232,7 @@ between iterations. Record what actually happened.
 | Iteration | Who | Modules / tasks owned | Reviewed by |
 |---|---|---|---|
 | 1 | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix |  |
-| 2 |  |  |  |
+| 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing; ran controlled P0/P1 LOSO comparison; analysed metrics and confusion matrices | |
 
 ## Final numbers (fill in once, at the end)
 
