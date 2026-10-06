@@ -50,6 +50,12 @@ def main():
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "sleep_edf_data")
     parser.add_argument("--output-dir", type=Path,
                         help="New output directory; existing directories are never overwritten.")
+    parser.add_argument(
+        "--preprocess",
+        choices=["none","bandpass"], 
+        default="none",
+        help="Preprocessing experiment : none=P0, bandpass=P1 EEG 0.5-40Hz"
+    )
     args = parser.parse_args()
     cache = args.cache_dir.resolve()
     psgs = sorted(cache.rglob("*-PSG.edf"))
@@ -66,12 +72,13 @@ def main():
     manifest = [{"path": str(p.relative_to(cache)), "bytes": p.stat().st_size,
                  "sha256": sha256(p)} for p in input_files]
     started = datetime.now(timezone.utc)
+    experiment = "P0" if args.preprocess == "none" else "P1"
     output = (args.output_dir or ROOT / "results" /
-              f"real_baseline_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
+              f"real__{experiment}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
     if output.exists():
         parser.error(f"Output directory already exists: {output}")
 
-    cfg = {"seed": 0, "preprocess": "none", "spectral_method": "welch",
+    cfg = {"seed": 0, "preprocess": args.preprocess, "spectral_method": "welch",
            "select": "none"}
     track = SleepEDFTrack()
     print(f"Loading {len(psgs)} PSG/hypnogram pairs from {cache}", flush=True)
@@ -92,7 +99,11 @@ def main():
             raise ValueError(f"Unexpected sampling rate or epoch shape in {rec.meta['record']}")
         print(f"  {rec.meta['record']}: subject={rec.group}, epochs={len(rec.labels)}", flush=True)
 
-    print("Extracting the 11 supplied features (no optional preprocessing or cropping)...", flush=True)
+    print(
+        f"Extracting the 11 supplied features "
+        f"(preprocess={cfg['preprocess']}, no cropping)...",
+        flush=True,
+    )
     X, y, groups = track.build_dataset(recs, cfg)
     if X.shape != (len(y), 11) or len(groups) != len(y) or not np.isfinite(X).all():
         raise ValueError("Invalid feature shape, label alignment, or non-finite features.")

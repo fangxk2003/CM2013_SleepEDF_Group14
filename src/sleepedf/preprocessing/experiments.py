@@ -4,7 +4,8 @@ from typing import Literal
 
 import numpy as np
 
-from ..reference.adapter import Recording
+from ..reference.adapter import Recording, bandpass_notch
+
 
 
 @dataclass
@@ -16,7 +17,14 @@ class EEGBandpass:
     order: int = 4
 
     def transform(self, recording: Recording) -> Recording:
-        raise NotImplementedError("P1: EEG band-pass is a planned experiment.")
+        return bandpass_notch(
+            recording,
+            band=(self.low_hz, self.high_hz),
+            notch=None,
+            order=self.order,
+            channels=("eeg",),
+            causal=False,
+        )
 
 
 @dataclass
