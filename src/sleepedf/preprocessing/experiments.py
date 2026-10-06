@@ -48,21 +48,97 @@ class WaveletDenoising:
 
 @dataclass
 class BrokenSegmentHandling:
-    """P3: flag/exclude objectively identified dropout or near-flat epochs.
+    """P3: detect and handle objectively identified near-flat epochs.
 
-    Fix QC thresholds before evaluation. Report affected counts, stages and
-    subjects. Never repair a broken epoch merely by making it look filtered.
+    An epoch is considered broken when both EEG and EOG show
+    exceptionally low variability over the complete epoch.
+
+    The thresholds were fixed from the Iteration 2 QC analysis
+    before classifier evaluation. They are not estimated from
+    labels or recomputed during LOSO evaluation.
+
+    If action="flag", the recording is returned with the broken
+    epoch mask stored in metadata.
+
+    If action="exclude", the same mask is applied to every signal
+    channel and to the labels so that alignment is preserved.
     """
 
     action: Literal["flag", "exclude"] = "flag"
 
+    eeg_std_threshold: float = 4.820492569885e-06
+    eog_std_threshold: float = 7.200175602286e-06
+
     def detect(self, recording: Recording) -> np.ndarray:
-        """Return one boolean per epoch; True identifies a broken epoch."""
-        raise NotImplementedError("P3: define and implement objective QC rules.")
+        """Return one boolean per epoch; True means broken."""
+
+        eeg = np.asarray(recording.epochs["eeg"])
+        eog = np.asarray(recording.epochs["eog"])
+
+        eeg_std = np.std(eeg, axis=1)
+        eog_std = np.std(eog, axis=1)
+
+        broken = (
+            (eeg_std < self.eeg_std_threshold)
+            & (eog_std < self.eog_std_threshold)
+        )
+
+        return broken
 
     def transform(self, recording: Recording) -> Recording:
-        raise NotImplementedError("P3: aligned flagging/exclusion is not implemented.")
+        """Flag or exclude epochs identified by detect()."""
 
+        broken = self.detect(recording)
+
+        # Copy metadata so the input Recording is not modified.
+        meta = dict(recording.meta)
+
+        meta["broken_segments"] = {
+            "method": "near_flat_eeg_eog",
+            "eeg_std_threshold": self.eeg_std_threshold,
+            "eog_std_threshold": self.eog_std_threshold,
+            "n_broken": int(np.sum(broken)),
+            "broken_epoch_indices": np.flatnonzero(broken).tolist(),
+            "action": self.action,
+        }
+
+        if self.action == "flag":
+
+            meta["broken_epoch_mask"] = broken.copy()
+
+            return Recording(
+                group=recording.group,
+                fs=recording.fs,
+                epochs={
+                    ch: np.asarray(values).copy()
+                    for ch, values in recording.epochs.items()
+                },
+                labels=np.asarray(recording.labels).copy(),
+                meta=meta,
+            )
+
+        if self.action == "exclude":
+
+            keep = ~broken
+
+            epochs = {
+                ch: np.asarray(values)[keep].copy()
+                for ch, values in recording.epochs.items()
+            }
+
+            labels = np.asarray(recording.labels)[keep].copy()
+
+            return Recording(
+                group=recording.group,
+                fs=recording.fs,
+                epochs=epochs,
+                labels=labels,
+                meta=meta,
+            )
+
+        raise ValueError(
+            f"Unknown BrokenSegmentHandling action: {self.action!r}"
+        )
 
 @dataclass
 class SubjectRecordingNormalisation:

@@ -34,6 +34,7 @@ spread is half a result.
 | 2a | 2026-10-06 | P0: current baseline on 3 subjects × 2 nights, no preprocessing, to establish the development reference | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | Baseline for Iteration 2 development experiments | - | `e6cada5` |
 | 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
 | 2c | 2026-10-06 | P2: EEG wavelet denoising using db4, automatic decomposition level (max 5), soft thresholding and automatic per-epoch VisuShrink threshold; EOG and EMG unchanged | mean Cohen's kappa 0.743 (sd 0.065, range 0.669–0.781 across 3 subjects) | Yes vs P0; only marginally higher kappa than P1, with lower macro-F1 and balanced accuracy | P1 retained as the current preprocessing candidate because it provides more balanced stage-wise performance | |
+| 2d | 2026-10-06 | P3: objective broken-segment handling; epochs with simultaneous full-epoch near-flat EEG and EOG were excluded using thresholds fixed from QC before evaluation; 3/16,688 epochs were removed | mean Cohen's kappa 0.694 (sd 0.109, range 0.582–0.800 across 3 subjects) | No — mean kappa decreased from 0.704 to 0.694 vs P0; macro-F1 0.648→0.644 | Retained as a data-quality safeguard rather than a performance improvement: the rule removes objectively unreliable epochs and provides predefined handling if similar sustained flatlines occur in additional recordings | |
 | 4 |  |  |  | yes / no |  |  |
 
 *"Better" means better under the same honest harness — same split unit, same evaluation mode,
@@ -161,6 +162,61 @@ provisional until the selected final pipeline is evaluated on a larger
 subject set.
 P2 : Decision: P2 is considered beneficial relative to P0, but not clearly superior to P1. The small improvement in the primary metric is accompanied by less balanced stage-wise performance, particularly for N1. P1 is therefore retained as the current preprocessing candidate for subsequent development experiments. This decision remains provisional because the comparison is based on only three development subjects.
 
+### P3 — Broken-segment handling
+
+**Motivation.**  
+The real-data QC identified a localized near-flat event in recording
+`SC4012E0`. A continuous short-window analysis confirmed that EEG and EOG
+were simultaneously near-flat for approximately 100 s, spanning the end of
+epoch 2844 and epochs 2845–2847. Shorter low-variability periods were also
+observed in individual channels in other recordings, so low variability in a
+single channel was not considered sufficient evidence for exclusion.
+
+**Decision.**  
+P3 uses a conservative, label-independent detector based on the standard
+deviation of the complete 30 s epoch. An epoch is classified as broken only
+when both:
+
+- EEG standard deviation < `4.820492569885e-06 V`
+- EOG standard deviation < `7.200175602286e-06 V`
+
+The thresholds were fixed from the QC analysis before evaluating P3 and are
+not recomputed during LOSO evaluation. Epochs detected as broken are excluded,
+with the same mask applied to EEG, EOG, EMG and labels. The detected indices
+and QC decision are also stored in the recording metadata.
+
+On the current six-recording development dataset, the detector excluded only
+three epochs, all from `SC4012E0`: epochs 2845, 2846 and 2847. The dataset
+therefore changed from 16,688 to 16,685 epochs (3/16,688 = 0.018%).
+
+**Controlled comparison with P0.**
+
+| Metric | P0 | P3 |
+|---|---:|---:|
+| Mean subject-wise Cohen's kappa | 0.704 | 0.694 |
+| SD of subject-wise kappa | 0.087 | 0.109 |
+| Subject-wise kappa range | 0.627–0.799 | 0.582–0.800 |
+| Accuracy | 0.849 | 0.843 |
+| Pooled Cohen's kappa | 0.710 | 0.700 |
+| Macro-F1 | 0.648 | 0.644 |
+| Balanced accuracy | 0.650 | 0.647 |
+
+P3 did not improve classification performance on the current three-subject
+development cohort. Mean subject-wise kappa decreased by 0.010 and the other
+summary metrics also decreased slightly. However, only three epochs (0.018%
+of the dataset) were removed, so this experiment provides little evidence
+about the effect of broken-segment handling when recordings contain more
+substantial dropout.
+
+**Decision after evaluation.**  
+Retain P3 as a data-quality safeguard rather than as a performance-enhancing
+preprocessing step. The exclusion criterion was motivated by signal QC rather
+than classifier performance and targets epochs considered unreliable for
+physiological feature extraction. Keeping the detector in the pipeline also
+provides a predefined handling rule if similarly sustained multichannel
+near-flat segments occur in additional recordings. The small decrease in
+classification metrics on the current development cohort is therefore not
+used as a reason to retain objectively broken epochs.
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
@@ -216,6 +272,7 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | 1. Data loading | *e.g.* 8 subjects, both nights | more subjects, one night each | subject-level split needs both nights inside one group | 1 | — |
 | 2. Preprocessing — P1 band-pass filtering| EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
 | 2. Preprocessing — P2 wavelet denoising | Not retained; P1 remains the current preprocessing choice | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | No |
+| 2. Preprocessing — P3 broken-segment handling | Retained as a data-quality safeguard: exclude complete epochs with simultaneous near-flat EEG and EOG | Flag detected epochs without exclusion; no broken-segment handling | QC identified a sustained simultaneous EEG/EOG near-flat event in SC4012E0; the fixed label-independent rule excluded only the three fully affected epochs (2845–2847). Although mean subject kappa decreased from 0.704 to 0.694 vs P0, the rule was retained because objectively broken epochs should not be treated as valid physiological signal and the same predefined rule can handle similar dropout in additional recordings. | 2d | No — retained for data quality, not classification improvement |
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
@@ -244,7 +301,7 @@ between iterations. Record what actually happened.
 | Iteration | Who | Modules / tasks owned | Reviewed by |
 |---|---|---|---|
 | 1 | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix |  |
-| 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing; ran controlled P0/P1 LOSO comparison; analysed metrics and confusion matrices | |
+| 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing, P2 EEG wavelet denoising and P3 broken-segment detection/exclusion; performed short-window and continuous-duration QC analysis of near-flat segments; ran controlled P0/P1, P0/P2 and P0/P3 LOSO comparisons; analysed subject-wise metrics, stage-wise performance and confusion matrices | |
 
 ## Final numbers (fill in once, at the end)
 

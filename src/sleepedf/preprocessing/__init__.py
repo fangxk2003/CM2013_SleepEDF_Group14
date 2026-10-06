@@ -7,16 +7,29 @@ from .experiments import (
 
 
 def make_preprocessor(name="none") -> Preprocessor:
-    """Select a recording transform. Planned experiments fail when called."""
-    choices = {
-        "none": NoPreprocessing, "p0": NoPreprocessing,
-        "bandpass": EEGBandpass, "p1": EEGBandpass,
-        "wavelet": WaveletDenoising, "p2": WaveletDenoising,
-        "broken_segments": BrokenSegmentHandling, "p3": BrokenSegmentHandling,
-        "normalisation": SubjectRecordingNormalisation, "p4": SubjectRecordingNormalisation,
-        "denoise": TargetedDenoising, "p5": TargetedDenoising,
-    }
+    """Select the preprocessing transform. Planned experiments fail when called."""
+
     key = str(name or "none").lower()
+
+    if key in ("broken_segments", "p3"):
+        return BrokenSegmentHandling(action="exclude")
+
+    choices = {
+        "none": NoPreprocessing,
+        "p0": NoPreprocessing,
+        "bandpass": EEGBandpass,
+        "p1": EEGBandpass,
+        "wavelet": WaveletDenoising,
+        "p2": WaveletDenoising,
+        "normalisation": SubjectRecordingNormalisation,
+        "p4": SubjectRecordingNormalisation,
+        "denoise": TargetedDenoising,
+        "p5": TargetedDenoising,
+    }
+
     if key not in choices:
-        raise ValueError(f"Unknown preprocessing experiment: {name!r}")
+        raise ValueError(
+            f"Unknown preprocessing experiment: {name!r}"
+        )
+
     return choices[key]()

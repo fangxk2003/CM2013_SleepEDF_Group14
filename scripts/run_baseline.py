@@ -52,9 +52,9 @@ def main():
                         help="New output directory; existing directories are never overwritten.")
     parser.add_argument(
         "--preprocess",
-        choices=["none","bandpass", "wavelet"], 
+        choices=["none","bandpass", "wavelet","broken_segments"], 
         default="none",
-        help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising"
+        help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising, broken_segments=P3 exclude objectively identified near-flat epochs (EEG+EOG).",
     )
     args = parser.parse_args()
     cache = args.cache_dir.resolve()
@@ -76,6 +76,7 @@ def main():
         "none": "P0",
         "bandpass": "P1",
         "wavelet": "P2",
+        "broken_segments": "P3",
     }[args.preprocess]
     output = (args.output_dir or ROOT / "results" /
               f"real__{experiment}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
