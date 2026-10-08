@@ -12,13 +12,7 @@
 >
 > This table is where (2), (3) and (4) land; `git log` is where (1) becomes checkable. It also makes writing the report an assembly job rather than an archaeology project.
 >
-> **This file is graded.** `CAPSTONE_REPORT_RUBRIC.md` **Criterion 9 — Iteration & revision
-> history (3 pts)** takes `RESULTS.md` as its evidence, and it asks for one specific thing that
-> a forward-only log cannot show: **at least one earlier decision you went back and changed
-> because of a downstream result**, with the symptom that sent you back named. A row that
-> *lowered* the headline metric and was kept for a stated reason is full-marks evidence, not a
-> weakness. Rows here are also direct evidence for "Reproducibility & engineering" and "Report
-> quality & defence".
+> **This file is graded.** `CAPSTONE_REPORT_RUBRIC.md` **Criterion 9 — Iteration & revision history (3 pts)** takes `RESULTS.md` as its evidence, and it asks for one specific thing that a forward-only log cannot show: **at least one earlier decision you went back and changed because of a downstream result**, with the symptom that sent you back named. A row that *lowered* the headline metric and was kept for a stated reason is full-marks evidence, not a weakness. Rows here are also direct evidence for "Reproducibility & engineering" and "Report quality & defence".
 
 **Track:** `sleep_edf` ·
 **Split unit:** `subject` · **Primary metric:** Cohen's kappa ·
@@ -42,34 +36,85 @@ spread is half a result.
 | 2c | 2026-10-06 | P2: EEG wavelet denoising using db4, automatic decomposition level (max 5), soft thresholding and automatic per-epoch VisuShrink threshold; EOG and EMG unchanged | mean Cohen's kappa 0.743 (sd 0.065, range 0.669–0.781 across 3 subjects) | Yes vs P0; only marginally higher kappa than P1, with lower macro-F1 and balanced accuracy | P1 retained as the current preprocessing candidate because it provides more balanced stage-wise performance |`97447e2` |
 | 2d | 2026-10-06 | P3: objective broken-segment handling; epochs with simultaneous full-epoch near-flat EEG and EOG were excluded using thresholds fixed from QC before evaluation; 3/16,688 epochs were removed | mean Cohen's kappa 0.694 (sd 0.109, range 0.582–0.800 across 3 subjects) | No — mean kappa decreased from 0.704 to 0.694 vs P0; macro-F1 0.648→0.644 | Retained as a data-quality safeguard rather than a performance improvement: the rule removes objectively unreliable epochs and provides predefined handling if similar sustained flatlines occur in additional recordings |`7c34ebf` |
 | 2e | 2026-10-08 | P5: EEG suspected-clipping detection using recording-specific extrema and plateaus of at least 3 consecutive samples (30 ms); 57/16,688 epochs flagged, with no signal modification or exclusion | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | No improvement vs P0; all 16,688 predictions identical (0 differences) | Retained as a label-independent signal-quality safeguard: suspected clipping is documented without reconstructing potentially lost EEG information or altering classification | `c8410dc` |
-| 2f (course environment, smoke) | 2026-10-08 | Align Python and dependencies with the course guide; repeat the P0 synthetic smoke check (5 subjects × 80 epochs, seed 0) | mean cohens_kappa 0.614 (sd 0.314, range 0.137-0.933 across 5 subjects) | New environment reference | Kept to match the course pins; scores from the earlier environment remain historical | Pending commit; source HEAD `e470502`, see environment record below |
-| 2g (course environment, real baseline) | 2026-10-08 | Repeat P0 on subjects 0, 1, 2, both nights, under the course environment; unchanged features and classifier, seed 0 | mean cohens_kappa 0.723 (sd 0.115, range 0.596-0.822 across 3 subjects) | New environment reference | Kept to match the course pins; rerun preprocessing/model candidates under this environment before comparing them | Pending commit; source HEAD `e470502`, see saved provenance below |
+|                                        |                |                                                              |                                                              |                                                              |                                                              |               |
+|                                        |                |                                                              |                                                              |                                                              |                                                              |               |
 | 4 |  |  |  | yes / no |  |  |
 
-*"Better" means better under the same honest harness — same split unit, same evaluation mode,
-same seed. A change that lowers the metric can still be the right call (simpler, faster, more
-robust across subjects, removes a leak). Say so in the column instead of quietly reverting it:
-"kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a
-silent higher mean.*
+*"Better" means better under the same honest harness — same split unit, same evaluation mode, same seed. A change that lowers the metric can still be the right call (simpler, faster, more robust across subjects, removes a leak). Say so in the column instead of quietly reverting it: "kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a silent higher mean.*
 
-## Course environment alignment — 2026-10-08
+## Detailed log
 
-The project now selects Python **3.11**, matching the course CI; the installed
-patch version used for these checks was **3.11.14**. The course guide specifies
-no Python patch version. Both course requirements files were copied unchanged,
-their pins mirrored in `pyproject.toml`, and `uv.lock` regenerated. Installed
-versions were verified against all nine course pins: NumPy 2.2.6, SciPy 1.15.3,
-scikit-learn 1.7.2, Matplotlib 3.10.9, PyWavelets 1.8.0, Pillow 12.2.0,
-imbalanced-learn 0.14.2, MNE 1.10.1 and WFDB 4.3.0.
+(new entry inserted to the top)
 
-Validation passed: the synthetic smoke check including repeatability, all
-**33 unit tests** (including optional XGBoost), and the six-recording real-data
-P0 baseline. The synthetic run's pooled kappa was 0.616, macro-F1 0.686 and
-accuracy 0.713. The real run covered 16,688 epochs and three subject-separated
-LOSO folds; pooled kappa was 0.731, macro-F1 0.625, balanced accuracy 0.595 and
-accuracy 0.869. These establish new environment references. Earlier experiment
-scores retain their recorded environments and should be rerun under the course
-pins before comparison.
+### Course-environment reproduction of P0-P5 - Lili - 2026-10-08
+
+The preprocessing experiments were repeated in the `cm2013-team` Conda environment using Python 3.11.17.
+
+All experiments used the same three subjects (SC400, SC401 and SC402), two nights per subject, 11 supplied features, a Random Forest classifier and three subject-wise leave-one-subject-out (LOSO) folds. No cropping was applied.
+
+#### Performance comparison
+
+| Metric                          |     P0 |        P1 |        P2 |     P3 |     P5 |
+| ------------------------------- | -----: | --------: | --------: | -----: | -----: |
+| Evaluated epochs                | 16,688 |    16,688 |    16,688 | 16,685 | 16,688 |
+| Mean subject-wise Cohen's kappa |  0.720 | **0.743** |     0.736 |  0.721 |  0.720 |
+| SD of subject-wise kappa        |  0.119 |     0.114 | **0.102** |  0.125 |  0.119 |
+| Pooled accuracy                 |  0.868 | **0.880** |     0.877 |  0.869 |  0.868 |
+| Pooled Cohen's kappa            |  0.729 | **0.752** |     0.743 |  0.731 |  0.729 |
+| Pooled macro-F1                 |  0.622 | **0.654** |     0.648 |  0.621 |  0.622 |
+| Pooled balanced accuracy        |  0.592 | **0.618** |     0.613 |  0.590 |  0.592 |
+
+#### Interpretation and decisions
+
+**P1 — Band-pass filtering**
+
+P1 (0.5–40 Hz EEG band-pass filtering) achieved the highest mean subject-wise Cohen's kappa and the best pooled classification metrics in this reproduction.
+
+P1 is retained as the current preferred preprocessing candidate.
+
+**P2 — Wavelet denoising**
+
+P2 (db4 wavelet denoising) also improved performance relative to P0. Although its mean kappa was slightly lower than P1, it achieved lower between-subject variability and better REM recall.
+
+Both P1 and P2 are therefore retained as preprocessing candidates for further evaluation.
+
+**P3 — Broken-segment handling**
+
+P3 excluded three epochs with simultaneous near-flat EEG and EOG, leaving 16,685 epochs.
+
+Its primary purpose remains data-quality control rather than classification improvement. Because P3 evaluates a slightly different set of epochs, its metrics should be interpreted with this difference in mind.
+
+**P5 — Suspected clipping detection**
+
+P5 flagged 57 of 16,688 epochs (0.342%) for suspected EEG clipping.
+
+No signals or labels were modified, and no epochs were excluded. Classification metrics and the confusion matrix remained identical to P0.
+
+P5 is retained as a quality-control safeguard, not as a denoising method. Flagged epochs are not necessarily confirmed instances of hardware saturation.
+
+#### Comparison with earlier experiments
+
+The relative ranking of P1 and P2 differs from the experiments performed in the earlier environment.
+
+In the earlier experiments, P2 achieved a slightly higher mean subject-wise Cohen's kappa than P1 (0.743 vs 0.737).
+
+In the course-environment reproduction, P1 achieved a higher mean kappa than P2 (0.743 vs 0.736).
+
+The historical results are preserved for transparency. These comparisons remain exploratory because only three subjects were evaluated.
+
+#### Saved results and provenance
+
+Each experiment generated a `report.json` containing the evaluation results and a `provenance.json` recording information needed for reproducibility.
+
+| Experiment | Results directory                          |
+| ---------- | ------------------------------------------ |
+| P0         | `results/real__P0_20261008T115921097052Z/` |
+| P1         | `results/real__P1_20261008T120846779566Z/` |
+| P2         | `results/real__P2_20261008T121636`         |
+
+
+
+### Course environment alignment - Xingkai - 2026-10-08
 
 Reproduce from the team repository root:
 
@@ -80,17 +125,205 @@ uv run --locked python -B -m unittest discover -s tests -v
 uv run --locked python -B scripts/run_baseline.py --subjects 0 1 2 --nights 1 2
 ```
 
-To include optional XGBoost in verification, use `uv sync --locked --extra xgboost`
-and `uv run --locked --extra xgboost python -B -m unittest discover -s tests -v`.
 
-Saved artifacts: [report](results/real__P0_20261008T112303518579Z/report.json),
-[provenance](results/real__P0_20261008T112303518579Z/provenance.json), and
-[complete environment/check record](results/real__P0_20261008T112303518579Z/environment.json).
-The provenance records source HEAD `e470502` together with the uncommitted
-working-tree state and source/data SHA-256 hashes. The environment record adds
-all installed package versions and SHA-256 hashes of the five environment files.
 
-## Real EDF baseline - 2026-10-01
+### P5 EEG clipping detection and quality flagging - Lili - 2026-10-08
+
+**Motivation.**
+
+Exploratory EEG quality-control analysis identified unusually repeated amplitude extrema in several Sleep-EDF recordings, particularly SC4012E0 and SC4022E0. Visual inspection showed flattened EEG peaks, suggesting possible amplitude saturation or clipping. However, without confirmed acquisition limits, these events are classified as suspected rather than confirmed clipping.
+
+**Detection method.**
+
+P5 uses a deterministic, label-independent detector applied separately to each complete recording:
+
+1. Compute the minimum and maximum EEG amplitude within the recording.
+2. Identify sequences of at least three consecutive samples exactly equal to either extreme.
+3. Flag any 30-second epoch containing such a sequence.
+4. Preserve all original EEG, EOG and EMG signals, labels and epochs.
+
+At 100 Hz, three samples correspond to 30 ms. The upper and lower extrema are checked separately to avoid combining opposite-amplitude samples into a single plateau.
+
+The detector stores the flagged epoch indices and detection parameters in the recording metadata. A separate `clipping_qc.json` file provides the recording-level quality-control report.
+
+**Quality-control results.**
+
+| Recording | Flagged epochs | Total epochs | Flagged (%) |
+| --------- | -------------: | -----------: | ----------: |
+| SC4001E0  |              2 |        2,650 |       0.075 |
+| SC4002E0  |              0 |        2,829 |       0.000 |
+| SC4011E0  |              3 |        2,802 |       0.107 |
+| SC4012E0  |             29 |        2,848 |       1.018 |
+| SC4021E0  |              0 |        2,804 |       0.000 |
+| SC4022E0  |             23 |        2,755 |       0.835 |
+| **Total** |         **57** |   **16,688** |   **0.342** |
+
+The longest observed extreme-value plateaus were 340 ms in SC4012E0 and 420 ms in SC4022E0. Most flagged epochs were concentrated in these two recordings.
+
+**Controlled comparison with P0.**
+
+Both experiments used the same six recordings, 11 supplied features, Random Forest classifier and three subject-wise LOSO folds.
+
+| Metric                          |          P0 |          P5 |
+| ------------------------------- | ----------: | ----------: |
+| Mean subject-wise Cohen's kappa |       0.704 |       0.704 |
+| SD of subject-wise kappa        |       0.087 |       0.087 |
+| Subject-wise kappa range        | 0.627–0.799 | 0.627–0.799 |
+| Accuracy                        |       0.849 |       0.849 |
+| Pooled Cohen's kappa            |       0.710 |       0.710 |
+| Macro-F1                        |       0.648 |       0.648 |
+| Balanced accuracy               |       0.650 |       0.650 |
+
+A direct comparison of the P0 and P5 prediction arrays confirmed that all 16,688 predictions were identical, with zero differences.
+
+**Validation and leakage considerations.**
+
+The independent P5 validation script confirmed that EEG, EOG, EMG, labels and epoch alignment were preserved. The detector does not use sleep-stage labels, statistics pooled across subjects, or classifier predictions.
+
+Recording extrema are calculated independently for each complete night. This is a recording-local, label-free operation suitable for the retrospective full-recording analysis considered here. However, it uses the complete test recording's unlabelled signal distribution and is therefore not directly applicable to real-time epoch-by-epoch inference.
+
+The detector was designed after exploratory inspection of the current three-subject development cohort. Its parameters and performance should not be presented as independently validated on unseen subjects. The rule must be frozen before final evaluation, and any use of full-recording test statistics must remain consistent with the declared evaluation protocol.
+
+**Decision after evaluation.**
+
+Retain P5 as a signal-quality monitoring safeguard, not as a performance-enhancing denoising method. Flagging suspected clipping preserves the original physiological signals and provides traceable warnings without introducing potentially misleading interpolation or reconstruction.
+
+P5 does not improve classification performance because its flags are stored as metadata and are not used as classifier features. All epochs remain in the evaluation.
+
+The current detector identifies repeated extrema within individual epochs and does not yet merge plateaus crossing epoch boundaries. It also cannot independently confirm hardware saturation. These limitations should be considered before extending the method to additional recordings.
+
+**Reproducibility.**
+
+Command:
+`python scripts/run_baseline.py --preprocess denoise_clipping`
+
+Output directory:
+`results/real__P5_20261008T100803267247Z/`
+
+Artifacts:
+
+- `report.json`
+- `provenance.json`
+- `clipping_qc.json`
+
+Independent validation:
+`python scripts/test_p5_flags.py`
+
+P0/P5 prediction comparison:
+16,688 identical predictions; 0 differences.
+
+
+
+### P3 Broken-segment handling - Lili - 2026-10-06
+
+**Motivation.**  
+
+The real-data QC identified a localized near-flat event in recording
+`SC4012E0`. A continuous short-window analysis confirmed that EEG and EOG
+were simultaneously near-flat for approximately 100 s, spanning the end of
+epoch 2844 and epochs 2845–2847. Shorter low-variability periods were also
+observed in individual channels in other recordings, so low variability in a
+single channel was not considered sufficient evidence for exclusion.
+
+**Decision.**  
+
+P3 uses a conservative, label-independent detector based on the standard
+deviation of the complete 30 s epoch. An epoch is classified as broken only
+when both:
+
+- EEG standard deviation < `4.820492569885e-06 V`
+- EOG standard deviation < `7.200175602286e-06 V`
+
+The thresholds were fixed from the QC analysis before evaluating P3 and are
+not recomputed during LOSO evaluation. Epochs detected as broken are excluded,
+with the same mask applied to EEG, EOG, EMG and labels. The detected indices
+and QC decision are also stored in the recording metadata.
+
+On the current six-recording development dataset, the detector excluded only
+three epochs, all from `SC4012E0`: epochs 2845, 2846 and 2847. The dataset
+therefore changed from 16,688 to 16,685 epochs (3/16,688 = 0.018%).
+
+**Controlled comparison with P0.**
+
+| Metric                          |          P0 |          P3 |
+| ------------------------------- | ----------: | ----------: |
+| Mean subject-wise Cohen's kappa |       0.704 |       0.694 |
+| SD of subject-wise kappa        |       0.087 |       0.109 |
+| Subject-wise kappa range        | 0.627–0.799 | 0.582–0.800 |
+| Accuracy                        |       0.849 |       0.843 |
+| Pooled Cohen's kappa            |       0.710 |       0.700 |
+| Macro-F1                        |       0.648 |       0.644 |
+| Balanced accuracy               |       0.650 |       0.647 |
+
+P3 did not improve classification performance on the current three-subject
+development cohort. Mean subject-wise kappa decreased by 0.010 and the other
+summary metrics also decreased slightly. However, only three epochs (0.018%
+of the dataset) were removed, so this experiment provides little evidence
+about the effect of broken-segment handling when recordings contain more
+substantial dropout.
+
+**Decision after evaluation.**  
+Retain P3 as a data-quality safeguard rather than as a performance-enhancing
+preprocessing step. The exclusion criterion was motivated by signal QC rather
+than classifier performance and targets epochs considered unreliable for
+physiological feature extraction. Keeping the detector in the pipeline also
+provides a predefined handling rule if similarly sustained multichannel
+near-flat segments occur in additional recordings. The small decrease in
+classification metrics on the current development cohort is therefore not
+used as a reason to retain objectively broken epochs.
+
+
+
+### P0 vs P1 vs P2 preprocessing comparison - Lili - 2026-10-06
+
+Development subset: 3 subjects (SC400, SC401, SC402), 2 nights per subject, 6 recordings and 16,688 epochs. The dataset, 11 supplied features, Random Forest classifier and subject-wise LOSO evaluation were kept unchanged across all three experiments. Only the preprocessing step was changed.
+
+- P0: no preprocessing.
+- P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; EOG and EMG unchanged.
+- P2: EEG wavelet denoising using db4, automatic decomposition level capped at 5, soft thresholding and an automatically estimated per-epoch VisuShrink threshold; EOG and EMG unchanged.
+
+
+| Metric                     |          P0 |          P1 |          P2 |
+| -------------------------- | ----------: | ----------: | ----------: |
+| Mean subject Cohen's kappa |       0.704 |       0.737 |   **0.743** |
+| SD subject Cohen's kappa   |       0.087 |       0.074 |   **0.065** |
+| Subject kappa range        | 0.627–0.799 | 0.666–0.813 | 0.669–0.781 |
+| Accuracy                   |       0.849 |       0.868 |   **0.872** |
+| Pooled Cohen's kappa       |       0.710 |       0.742 |   **0.747** |
+| Macro-F1                   |       0.648 |   **0.683** |       0.677 |
+| Balanced accuracy          |       0.650 |   **0.680** |       0.666 |
+
+Per-stage recall also increased for all five stages:
+
+| Stage |    P0 |        P1 |        P2 |
+| ----- | ----: | --------: | --------: |
+| W     | 0.918 |     0.933 | **0.944** |
+| N1    | 0.408 | **0.416** |     0.315 |
+| N2    | 0.900 | **0.905** |     0.897 |
+| N3    | 0.460 | **0.533** |     0.513 |
+| REM   | 0.566 |     0.611 | **0.660** |
+
+P0 VS P1
+The largest recall improvements were observed for N3 and REM. N3→N2
+confusions decreased from 320 to 273 epochs and REM→N2 confusions from
+356 to 313 epochs.
+
+P0 VS P2, P2 VS P1
+P2 improved substantially over P0 in the primary metric (mean subject Cohen's kappa: 0.704 to 0.743) and also reduced between-subject variability (SD: 0.087 to 0.065). It also improved Wake, N3 and REM recall relative to P0. However, the comparison between P1 and P2 was less clear. P2 increased mean subject kappa by only 0.006 and pooled kappa by 0.005 relative to P1, while macro-F1 decreased from 0.683 to 0.677 and balanced accuracy decreased from 0.680 to 0.666.
+
+The main stage-level trade-off was N1. Its recall decreased from 0.416 with P1 to 0.315 with P2. N2 recall also decreased slightly from 0.905 to 0.897, while REM recall improved from 0.611 to 0.660.
+
+**Decision:** 
+P1 : retain the 0.5–40 Hz EEG band-pass as the current preprocessing
+candidate. It improved all primary and secondary metrics on the development
+subset and reduced between-subject kappa variability. This decision remains
+provisional until the selected final pipeline is evaluated on a larger
+subject set.
+P2 : Decision: P2 is considered beneficial relative to P0, but not clearly superior to P1. The small improvement in the primary metric is accompanied by less balanced stage-wise performance, particularly for N1. P1 is therefore retained as the current preprocessing candidate for subsequent development experiments. This decision remains provisional because the comparison is based on only three development subjects.
+
+
+
+### Real EDF baseline - Xingkai - 2026-10-01
 
 **Completed on real Sleep-EDF recordings, not synthetic data.** The supplied
 baseline was unchanged: StandardScaler + RandomForestClassifier with 200 trees,
@@ -157,11 +390,13 @@ permissions; the same configuration was rerun with write permission. No tuning
 was performed. Runner and documentation prepared/executed with Codex assistance
 at Xingkai's request. No commit or push was performed.
 
-## Synthetic smoke-test evidence - 2026-09-30
+
+
+### Synthetic smoke-test evidence - Xingkai - 2026-09-30
 
 PASS. These are synthetic-data results, not performance on real Sleep-EDF.
 
-### Configuration
+**Configuration**
 
 - Data: `track.smoke(n_subjects=5, n_epochs=80, seed=0, difficulty="medium")`.
 - 400 labelled 30-second epochs, 100 Hz, 11 supplied features per epoch.
@@ -171,7 +406,7 @@ PASS. These are synthetic-data results, not performance on real Sleep-EDF.
 - Validation: five LOSO folds; 320 training and 80 test epochs per fold.
 - Environment: Python 3.13.3; NumPy 2.5.3; SciPy 1.18.1; scikit-learn 1.9.1; Matplotlib 3.11.2.
 
-### Results
+**Results**
 
 | Pooled metric | Harness value |
 |---|---|
@@ -202,7 +437,7 @@ Confusion matrix: rows are true labels, columns are predicted labels.
 
 Observed labels: W=42, N1=41, N2=155, N3=84, REM=78. The largest confusion is N2 predicted as N1 (38 epochs). S02 is much weaker than the other subjects, the pooled score alone hides this.
 
-### Code
+**Code**
 
 ```bash
 import numpy as np
@@ -229,259 +464,7 @@ for key in ("accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy",
     print(key, rep[key])
 print("PASS: shape, finite values, prediction count, five folds, confusion total, repeatability")
 ```
-### P0 vs P1 vs P2 preprocessing comparison — 2026-10-06
 
-Development subset: 3 subjects (SC400, SC401, SC402), 2 nights per subject, 6 recordings and 16,688 epochs. The dataset, 11 supplied features, Random Forest classifier and subject-wise LOSO evaluation were kept unchanged across all three experiments. Only the preprocessing step was changed.
-
-- P0: no preprocessing.
-- P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; EOG and EMG unchanged.
-- P2: EEG wavelet denoising using db4, automatic decomposition level capped at 5, soft thresholding and an automatically estimated per-epoch VisuShrink threshold; EOG and EMG unchanged.
-
-
-| Metric | P0 | P1 | P2 |
-|---|---:|---:|---:|
-| Mean subject Cohen's kappa | 0.704 | 0.737 | **0.743** |
-| SD subject Cohen's kappa | 0.087 | 0.074 | **0.065** |
-| Subject kappa range | 0.627–0.799 | 0.666–0.813 | 0.669–0.781 |
-| Accuracy | 0.849 | 0.868 | **0.872** |
-| Pooled Cohen's kappa | 0.710 | 0.742 | **0.747** |
-| Macro-F1 | 0.648 | **0.683** | 0.677 |
-| Balanced accuracy | 0.650 | **0.680** | 0.666 |
-
-Per-stage recall also increased for all five stages:
-
-| Stage | P0 | P1 | P2 |
-|---|---:|---:|---:|
-| W | 0.918 | 0.933 | **0.944** |
-| N1 | 0.408 | **0.416** | 0.315 |
-| N2 | 0.900 | **0.905** | 0.897 |
-| N3 | 0.460 | **0.533** | 0.513 |
-| REM | 0.566 | 0.611 | **0.660** |
-
-P0 VS P1
-The largest recall improvements were observed for N3 and REM. N3→N2
-confusions decreased from 320 to 273 epochs and REM→N2 confusions from
-356 to 313 epochs.
-
-P0 VS P2, P2 VS P1
-P2 improved substantially over P0 in the primary metric (mean subject Cohen's kappa: 0.704 to 0.743) and also reduced between-subject variability (SD: 0.087 to 0.065). It also improved Wake, N3 and REM recall relative to P0. However, the comparison between P1 and P2 was less clear. P2 increased mean subject kappa by only 0.006 and pooled kappa by 0.005 relative to P1, while macro-F1 decreased from 0.683 to 0.677 and balanced accuracy decreased from 0.680 to 0.666.
-
-The main stage-level trade-off was N1. Its recall decreased from 0.416 with P1 to 0.315 with P2. N2 recall also decreased slightly from 0.905 to 0.897, while REM recall improved from 0.611 to 0.660.
-
-**Decision:** 
-P1 : retain the 0.5–40 Hz EEG band-pass as the current preprocessing
-candidate. It improved all primary and secondary metrics on the development
-subset and reduced between-subject kappa variability. This decision remains
-provisional until the selected final pipeline is evaluated on a larger
-subject set.
-P2 : Decision: P2 is considered beneficial relative to P0, but not clearly superior to P1. The small improvement in the primary metric is accompanied by less balanced stage-wise performance, particularly for N1. P1 is therefore retained as the current preprocessing candidate for subsequent development experiments. This decision remains provisional because the comparison is based on only three development subjects.
-
-### P3 — Broken-segment handling
-
-**Motivation.**  
-The real-data QC identified a localized near-flat event in recording
-`SC4012E0`. A continuous short-window analysis confirmed that EEG and EOG
-were simultaneously near-flat for approximately 100 s, spanning the end of
-epoch 2844 and epochs 2845–2847. Shorter low-variability periods were also
-observed in individual channels in other recordings, so low variability in a
-single channel was not considered sufficient evidence for exclusion.
-
-**Decision.**  
-P3 uses a conservative, label-independent detector based on the standard
-deviation of the complete 30 s epoch. An epoch is classified as broken only
-when both:
-
-- EEG standard deviation < `4.820492569885e-06 V`
-- EOG standard deviation < `7.200175602286e-06 V`
-
-The thresholds were fixed from the QC analysis before evaluating P3 and are
-not recomputed during LOSO evaluation. Epochs detected as broken are excluded,
-with the same mask applied to EEG, EOG, EMG and labels. The detected indices
-and QC decision are also stored in the recording metadata.
-
-On the current six-recording development dataset, the detector excluded only
-three epochs, all from `SC4012E0`: epochs 2845, 2846 and 2847. The dataset
-therefore changed from 16,688 to 16,685 epochs (3/16,688 = 0.018%).
-
-**Controlled comparison with P0.**
-
-| Metric | P0 | P3 |
-|---|---:|---:|
-| Mean subject-wise Cohen's kappa | 0.704 | 0.694 |
-| SD of subject-wise kappa | 0.087 | 0.109 |
-| Subject-wise kappa range | 0.627–0.799 | 0.582–0.800 |
-| Accuracy | 0.849 | 0.843 |
-| Pooled Cohen's kappa | 0.710 | 0.700 |
-| Macro-F1 | 0.648 | 0.644 |
-| Balanced accuracy | 0.650 | 0.647 |
-
-P3 did not improve classification performance on the current three-subject
-development cohort. Mean subject-wise kappa decreased by 0.010 and the other
-summary metrics also decreased slightly. However, only three epochs (0.018%
-of the dataset) were removed, so this experiment provides little evidence
-about the effect of broken-segment handling when recordings contain more
-substantial dropout.
-
-**Decision after evaluation.**  
-Retain P3 as a data-quality safeguard rather than as a performance-enhancing
-preprocessing step. The exclusion criterion was motivated by signal QC rather
-than classifier performance and targets epochs considered unreliable for
-physiological feature extraction. Keeping the detector in the pipeline also
-provides a predefined handling rule if similarly sustained multichannel
-near-flat segments occur in additional recordings. The small decrease in
-classification metrics on the current development cohort is therefore not
-used as a reason to retain objectively broken epochs.
-
-
-### P5 — EEG clipping detection and quality flagging
-
-**Motivation.**
-
-Exploratory EEG quality-control analysis identified unusually repeated amplitude extrema in several Sleep-EDF recordings, particularly SC4012E0 and SC4022E0. Visual inspection showed flattened EEG peaks, suggesting possible amplitude saturation or clipping. However, without confirmed acquisition limits, these events are classified as suspected rather than confirmed clipping.
-
-**Detection method.**
-
-P5 uses a deterministic, label-independent detector applied separately to each complete recording:
-
-1. Compute the minimum and maximum EEG amplitude within the recording.
-2. Identify sequences of at least three consecutive samples exactly equal to either extreme.
-3. Flag any 30-second epoch containing such a sequence.
-4. Preserve all original EEG, EOG and EMG signals, labels and epochs.
-
-At 100 Hz, three samples correspond to 30 ms. The upper and lower extrema are checked separately to avoid combining opposite-amplitude samples into a single plateau.
-
-The detector stores the flagged epoch indices and detection parameters in the recording metadata. A separate `clipping_qc.json` file provides the recording-level quality-control report.
-
-**Quality-control results.**
-
-| Recording | Flagged epochs | Total epochs | Flagged (%) |
-|---|---:|---:|---:|
-| SC4001E0 | 2 | 2,650 | 0.075 |
-| SC4002E0 | 0 | 2,829 | 0.000 |
-| SC4011E0 | 3 | 2,802 | 0.107 |
-| SC4012E0 | 29 | 2,848 | 1.018 |
-| SC4021E0 | 0 | 2,804 | 0.000 |
-| SC4022E0 | 23 | 2,755 | 0.835 |
-| **Total** | **57** | **16,688** | **0.342** |
-
-The longest observed extreme-value plateaus were 340 ms in SC4012E0 and 420 ms in SC4022E0. Most flagged epochs were concentrated in these two recordings.
-
-**Controlled comparison with P0.**
-
-Both experiments used the same six recordings, 11 supplied features, Random Forest classifier and three subject-wise LOSO folds.
-
-| Metric | P0 | P5 |
-|---|---:|---:|
-| Mean subject-wise Cohen's kappa | 0.704 | 0.704 |
-| SD of subject-wise kappa | 0.087 | 0.087 |
-| Subject-wise kappa range | 0.627–0.799 | 0.627–0.799 |
-| Accuracy | 0.849 | 0.849 |
-| Pooled Cohen's kappa | 0.710 | 0.710 |
-| Macro-F1 | 0.648 | 0.648 |
-| Balanced accuracy | 0.650 | 0.650 |
-
-A direct comparison of the P0 and P5 prediction arrays confirmed that all 16,688 predictions were identical, with zero differences.
-
-**Validation and leakage considerations.**
-
-The independent P5 validation script confirmed that EEG, EOG, EMG, labels and epoch alignment were preserved. The detector does not use sleep-stage labels, statistics pooled across subjects, or classifier predictions.
-
-Recording extrema are calculated independently for each complete night. This is a recording-local, label-free operation suitable for the retrospective full-recording analysis considered here. However, it uses the complete test recording's unlabelled signal distribution and is therefore not directly applicable to real-time epoch-by-epoch inference.
-
-The detector was designed after exploratory inspection of the current three-subject development cohort. Its parameters and performance should not be presented as independently validated on unseen subjects. The rule must be frozen before final evaluation, and any use of full-recording test statistics must remain consistent with the declared evaluation protocol.
-
-**Decision after evaluation.**
-
-Retain P5 as a signal-quality monitoring safeguard, not as a performance-enhancing denoising method. Flagging suspected clipping preserves the original physiological signals and provides traceable warnings without introducing potentially misleading interpolation or reconstruction.
-
-P5 does not improve classification performance because its flags are stored as metadata and are not used as classifier features. All epochs remain in the evaluation.
-
-The current detector identifies repeated extrema within individual epochs and does not yet merge plateaus crossing epoch boundaries. It also cannot independently confirm hardware saturation. These limitations should be considered before extending the method to additional recordings.
-
-**Reproducibility.**
-
-Command:
-`python scripts/run_baseline.py --preprocess denoise_clipping`
-
-Output directory:
-`results/real__P5_20261008T100803267247Z/`
-
-Artifacts:
-- `report.json`
-- `provenance.json`
-- `clipping_qc.json`
-
-Independent validation:
-`python scripts/test_p5_flags.py`
-
-P0/P5 prediction comparison:
-16,688 identical predictions; 0 differences.
-
-### Course-environment reproduction of P0–P5 — 2026-10-08
-
-The preprocessing experiments were repeated in the `cm2013-team` Conda environment using Python 3.11.17.
-
-All experiments used the same three subjects (SC400, SC401 and SC402), two nights per subject, 11 supplied features, a Random Forest classifier and three subject-wise leave-one-subject-out (LOSO) folds. No cropping was applied.
-
-#### Performance comparison
-
-| Metric | P0 | P1 | P2 | P3 | P5 |
-|---|---:|---:|---:|---:|---:|
-| Evaluated epochs | 16,688 | 16,688 | 16,688 | 16,685 | 16,688 |
-| Mean subject-wise Cohen's kappa | 0.720 | **0.743** | 0.736 | 0.721 | 0.720 |
-| SD of subject-wise kappa | 0.119 | 0.114 | **0.102** | 0.125 | 0.119 |
-| Pooled accuracy | 0.868 | **0.880** | 0.877 | 0.869 | 0.868 |
-| Pooled Cohen's kappa | 0.729 | **0.752** | 0.743 | 0.731 | 0.729 |
-| Pooled macro-F1 | 0.622 | **0.654** | 0.648 | 0.621 | 0.622 |
-| Pooled balanced accuracy | 0.592 | **0.618** | 0.613 | 0.590 | 0.592 |
-
-#### Interpretation and decisions
-
-**P1 — Band-pass filtering**
-
-P1 (0.5–40 Hz EEG band-pass filtering) achieved the highest mean subject-wise Cohen's kappa and the best pooled classification metrics in this reproduction.
-
-P1 is retained as the current preferred preprocessing candidate.
-
-**P2 — Wavelet denoising**
-
-P2 (db4 wavelet denoising) also improved performance relative to P0. Although its mean kappa was slightly lower than P1, it achieved lower between-subject variability and better REM recall.
-
-Both P1 and P2 are therefore retained as preprocessing candidates for further evaluation.
-
-**P3 — Broken-segment handling**
-
-P3 excluded three epochs with simultaneous near-flat EEG and EOG, leaving 16,685 epochs.
-
-Its primary purpose remains data-quality control rather than classification improvement. Because P3 evaluates a slightly different set of epochs, its metrics should be interpreted with this difference in mind.
-
-**P5 — Suspected clipping detection**
-
-P5 flagged 57 of 16,688 epochs (0.342%) for suspected EEG clipping.
-
-No signals or labels were modified, and no epochs were excluded. Classification metrics and the confusion matrix remained identical to P0.
-
-P5 is retained as a quality-control safeguard, not as a denoising method. Flagged epochs are not necessarily confirmed instances of hardware saturation.
-
-#### Comparison with earlier experiments
-
-The relative ranking of P1 and P2 differs from the experiments performed in the earlier environment.
-
-In the earlier experiments, P2 achieved a slightly higher mean subject-wise Cohen's kappa than P1 (0.743 vs 0.737).
-
-In the course-environment reproduction, P1 achieved a higher mean kappa than P2 (0.743 vs 0.736).
-
-The historical results are preserved for transparency. These comparisons remain exploratory because only three subjects were evaluated.
-
-#### Saved results and provenance
-
-Each experiment generated a `report.json` containing the evaluation results and a `provenance.json` recording information needed for reproducibility.
-
-| Experiment | Results directory |
-|---|---|
-| P0 | `results/real__P0_20261008T115921097052Z/` |
-| P1 | `results/real__P1_20261008T120846779566Z/` |
-| P2 | `results/real__P2_20261008T121636
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
@@ -525,6 +508,8 @@ see what a filter was learned from. A learned stage must be fitted **inside** th
 in the classifier pipeline (cloned and refit per fold) or via `select_features()`. If you added
 one, record here which of the two you used.
 
+
+
 ## Decision log — the choices behind the numbers
 
 Rows above say *what happened*; this says *what you chose and why*, which is what §16.4 asks you
@@ -545,6 +530,8 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | 6. Inference |  |  |  |  |  |
 | 7. Reporting |  |  |  |  |  |
 
+
+
 ## Revisions — the ones that went **backwards** (Criterion 9's actual evidence)
 
 Adding iterations forward is a to-do list. What this section wants is the place a number
@@ -556,6 +543,8 @@ diagnose from.
 |---|---|---|---|---|
 | 1 | *e.g.* worst-subject κ 0.14 vs. mean 0.61 | stage 2 — no per-recording normalisation | z-scored band powers within each recording | mean κ 0.61 → 0.59, **worst subject 0.14 → 0.38** — kept |
 | 2 |  |  |  |  |
+
+
 
 ## Who did what
 
@@ -571,6 +560,7 @@ between iterations. Record what actually happened.
 | 1b | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix | Xingkai |
 | 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing, P2 EEG wavelet denoising and P3 broken-segment detection/exclusion; performed short-window and continuous-duration QC analysis of near-flat segments; ran controlled P0/P1, P0/P2 and P0/P3 LOSO comparisons; analysed subject-wise metrics, stage-wise performance and confusion matrices | Xingkai |
 | 2e | Lili | Designed and implemented P5 suspected EEG clipping detection and recording-level quality flagging; analysed amplitude extrema and plateau durations across six recordings; validated preservation of all signals and labels; exported clipping QC results; performed LOSO evaluation and verified that all 16,688 P5 predictions were identical to P0; documented leakage considerations and limitations | |
+
 
 
 ## Final numbers (fill in once, at the end)
