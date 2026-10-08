@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cm2013-sleepedf-group14"
+version = "0.1.0"
+description = "Group 14 Sleep-EDF signal processing and classification pipeline"
+readme = "README.md"
+requires-python = "==3.13.3"
+dependencies = [
+    # Preserve the scientific stack used by the recorded real-data baseline.
+    "numpy==2.5.3",
+    "scipy==1.18.1",
+    "scikit-learn==1.9.1",
+    "mne==1.13.2",
+    "matplotlib==3.11.2",
+    # Shared experiment options in the supplied adapter.
+    "PyWavelets==1.8.0",
+    "imbalanced-learn==0.14.2",
+]
+
+[dependency-groups]
+dev = ["ipykernel>=6.29"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sleepedf*", "bsp*"]
+
+[tool.uv]
+required-version = ">=0.9.26"
