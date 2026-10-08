@@ -19,7 +19,7 @@
 
 **Track:** `sleep_edf` ·
 **Split unit:** `subject` · **Primary metric:** Cohen's kappa ·
-**Evaluation mode:** new-subject (LOSO for this five-subject smoke run)
+**Evaluation mode:** new-subject (LOSO; five synthetic subjects / three real subjects)
 
 ## Iteration log
 
@@ -30,6 +30,7 @@ spread is half a result.
 | # | Date | What changed & why (one line) | Primary metric **with spread** | Better than previous? | If not — why it was kept | Commit |
 |---|---|---|---|---|---|---|
 | 1 (smoke only) | 2026-09-30 | Supplied baseline on synthetic medium-difficulty data | mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects) | Baseline | Functional check only | Source HEAD `0a48f51`; result log not yet committed |
+| 1a (real baseline) | 2026-10-01 | Same supplied model and features on SC4001, SC4011, SC4021; establish a real-data reference | mean kappa 0.618 (sd 0.202, range 0.386-0.760 across 3 subjects) | Not comparable to synthetic smoke data | Unchanged real-data baseline; no tuning | Source HEAD `dde6e44`; runner/results not yet committed |
 | 1b (real baseline) | 2026-10-02 | Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes | mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects) | Baseline on real data | - | `69d392f` |
 | 2a | 2026-10-06 | P0: current baseline on 3 subjects × 2 nights, no preprocessing, to establish the development reference | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | Baseline for Iteration 2 development experiments | - | `e6cada5` |
 | 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
@@ -42,6 +43,73 @@ same seed. A change that lowers the metric can still be the right call (simpler,
 robust across subjects, removes a leak). Say so in the column instead of quietly reverting it:
 "kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a
 silent higher mean.*
+
+## Real EDF baseline - 2026-10-01
+
+**Completed on real Sleep-EDF recordings, not synthetic data.** The supplied
+baseline was unchanged: StandardScaler + RandomForestClassifier with 200 trees,
+seed 0 and balanced class weights. Preprocessing was `none`, spectral estimation
+was `welch`, all 11 supplied features were retained, and no wake cropping was
+applied. Stages 3/4 were merged into N3 and Movement/Unknown dropped by the loader.
+LOSO used three folds, each holding out all epochs of one subject. This small
+subset is a baseline reference, not an untouched final test cohort.
+
+Reproduce from the repository root:
+
+```bash
+.venv/bin/python -B run_baseline.py --cache-dir sleep_edf_data
+```
+
+The runner evaluates every PSG/hypnogram pair under the cache directory. This run
+used exactly SC4001E0, SC4011E0 and SC4021E0. Adding files changes the cohort.
+Results and provenance for this run are saved in
+`results/real_baseline_20261001T193926289176Z/`:
+- `report.json`: metrics, confusion matrix, per-subject/fold results and aligned
+  out-of-fold labels, predictions, groups and fold IDs.
+- `provenance.json`: input EDF SHA-256 hashes, configuration, package versions,
+  source hashes and Git state (HEAD `dde6e44419ce6f8254717e1c7d3d027620a8cff3`).
+
+| Metric | Pooled result |
+|---|---|
+| Accuracy | 0.756 (unrounded: 0.7564195736) |
+| Cohen's kappa | 0.579 |
+| Macro-F1 | 0.618 |
+| Balanced accuracy | 0.699 |
+
+Harness summary: `mean cohens_kappa 0.618 (sd 0.202, range 0.386-0.760 across 3 subjects)`.
+
+| Held-out subject | Recording | Epochs | Accuracy | Kappa | Macro-F1 |
+|---|---|---|---|---|---|
+| SC400 | SC4001E0 | 2650 | 0.902264 | 0.760222 | 0.677821 |
+| SC401 | SC4011E0 | 2802 | 0.530335 | 0.386262 | 0.577265 |
+| SC402 | SC4021E0 | 2804 | 0.844508 | 0.707555 | 0.684391 |
+
+Confusion matrix: rows=true, columns=predicted.
+
+| True / predicted | W | N1 | N2 | N3 | REM |
+|---|---|---|---|---|---|
+| W | 4312 | 255 | 111 | 1076 | 6 |
+| N1 | 43 | 120 | 74 | 1 | 23 |
+| N2 | 44 | 33 | 1193 | 28 | 59 |
+| N3 | 61 | 0 | 74 | 284 | 1 |
+| REM | 1 | 13 | 108 | 0 | 336 |
+
+There were 8,256 epochs: W=5,760, N1=261, N2=1,357, N3=420, REM=458.
+Wake accounts for about 69.8% of epochs, so accuracy alone is insufficient.
+SC401 has the weakest kappa; the largest pooled confusion is Wake predicted as
+N3 (1,076 epochs). No causal explanation or improvement is claimed yet.
+These real-data metrics must not be interpreted as a gain/loss against the
+synthetic smoke metrics, because the datasets differ.
+
+Checks passed: all three EDF pairs loaded; 100 Hz / 3,000 samples per epoch;
+finite feature matrix of shape (8256, 11); one prediction per epoch; three LOSO
+folds; recomputed confusion matrix and kappa match the saved report; source hashes
+match; JSON serialization, missing-input handling and overwrite protection tested.
+Python package versions: NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1, MNE 1.13.2.
+The first execution reached the output step but could not save due to sandbox
+permissions; the same configuration was rerun with write permission. No tuning
+was performed. Runner and documentation prepared/executed with Codex assistance
+at Xingkai's request. No commit or push was performed.
 
 ## Synthetic smoke-test evidence - 2026-09-30
 
