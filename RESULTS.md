@@ -1,13 +1,16 @@
 # Results log — `Sleep EDF`, `Group 14`
 
-> **Copy this file into YOUR team's project repository** (not this scaffold repo) as
-> `RESULTS.md`, and add one row per iteration as you go — not the night before the deadline.
-> It exists because Chapter 16 §16.3 defines an iteration as *done* only when it (1) runs end
-> to end to a result, (2) reports the primary metric **with its spread**, (3) is committed with
-> a note saying what changed and why, and (4) is at least as good as the previous iteration —
-> **or** says in writing why the change was kept anyway. This table is where (2), (3) and (4)
-> land; `git log` is where (1) becomes checkable. It also makes writing the report an assembly
-> job rather than an archaeology project.
+> It exists because Chapter 16 §16.3 defines an iteration as *done* only when it 
+>
+> (1) runs end to end to a result
+>
+> (2) reports the primary metric **with its spread**
+>
+> (3) is committed with a note saying what changed and why
+>
+> (4) is at least as good as the previous iteration **or** says in writing why the change was kept anyway. 
+>
+> This table is where (2), (3) and (4) land; `git log` is where (1) becomes checkable. It also makes writing the report an assembly job rather than an archaeology project.
 >
 > **This file is graded.** `CAPSTONE_REPORT_RUBRIC.md` **Criterion 9 — Iteration & revision
 > history (3 pts)** takes `RESULTS.md` as its evidence, and it asks for one specific thing that
@@ -29,9 +32,11 @@ spread is half a result.
 
 | # | Date | What changed & why (one line) | Primary metric **with spread** | Better than previous? | If not — why it was kept | Commit |
 |---|---|---|---|---|---|---|
-| 1 (smoke only) | 2026-09-30 | Supplied baseline on synthetic medium-difficulty data | mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects) | Baseline | Functional check only | `0a48f51` |
-| 1a (real baseline) | 2026-10-01 | Same supplied model and features on SC4001, SC4011, SC4021; establish a real-data reference | mean kappa 0.618 (sd 0.202, range 0.386-0.760 across 3 subjects) | Baseline on real data | - | `dde6e44` |
+| ~~1 (smoke only)~~ | ~~2026-09-30~~ | ~~Supplied baseline on synthetic medium-difficulty data~~ | ~~mean kappa 0.682 (sd 0.318, range 0.155-0.933 across 5 subjects)~~ | ~~Baseline~~ | ~~Functional check only~~ | ~~`0a48f51`~~ |
+| ~~1a (real baseline)~~ | ~~2026-10-01~~ | ~~Same supplied model and features on SC4001, SC4011, SC4021; establish a real-data reference~~ | ~~mean kappa 0.618 (sd 0.202, range 0.386-0.760 across 3 subjects)~~ | ~~Baseline on real data~~ | - | ~~`dde6e44`~~ |
 | ~~1b (real baseline)~~ | ~~2026-10-02~~ | ~~Supplied baseline run end-to-end on real Sleep-EDF data to establish the reference performance before DSP/feature changes~~ | ~~mean cohens_kappa 0.720 (sd 0.119, range 0.589-0.822 across 3 subjects)~~ | ~~Baseline on real data~~ | - | ~~`69d392f`~~ |
+| 1c (course environment, smoke) | 2026-10-08 | Align Python and dependencies with the course guide; repeat the P0 synthetic smoke check (5 subjects × 80 epochs, seed 0) | mean cohens_kappa 0.614 (sd 0.314, range 0.137-0.933 across 5 subjects) | Baseline on smoke data | Kept to match the course pins; scores from the earlier environment remain historical | `e470502` |
+| 1d (course environment, real baseline) | 2026-10-08 | Repeat P0 on subjects 0, 1, 2, both nights, under the course environment; unchanged features and classifier, seed 0 | mean cohens_kappa 0.723 (sd 0.115, range 0.596-0.822 across 3 subjects) | Baseline on real data | Kept to match the course pins; rerun preprocessing/model candidates under this environment before comparing them | `e470502` |
 | 2a | 2026-10-06 | P0: current baseline on 3 subjects × 2 nights, no preprocessing, to establish the development reference | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | Baseline for Iteration 2 development experiments | - | `e6cada5` |
 | 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
 | 2c | 2026-10-06 | P2: EEG wavelet denoising using db4, automatic decomposition level (max 5), soft thresholding and automatic per-epoch VisuShrink threshold; EOG and EMG unchanged | mean Cohen's kappa 0.743 (sd 0.065, range 0.669–0.781 across 3 subjects) | Yes vs P0; only marginally higher kappa than P1, with lower macro-F1 and balanced accuracy | P1 retained as the current preprocessing candidate because it provides more balanced stage-wise performance |`97447e2` |
@@ -534,7 +539,6 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | 2. Preprocessing — P2 wavelet denoising | Not retained; P1 remains the current preprocessing choice | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | No |
 | 2. Preprocessing — P3 broken-segment handling | Retained as a data-quality safeguard: exclude complete epochs with simultaneous near-flat EEG and EOG | Flag detected epochs without exclusion; no broken-segment handling | QC identified a sustained simultaneous EEG/EOG near-flat event in SC4012E0; the fixed label-independent rule excluded only the three fully affected epochs (2845–2847). Although mean subject kappa decreased from 0.704 to 0.694 vs P0, the rule was retained because objectively broken epochs should not be treated as valid physiological signal and the same predefined rule can handle similar dropout in additional recordings. | 2d | No — retained for data quality, not classification improvement |
 | 2. Preprocessing — P5 clipping QC | Retained as a quality-control safeguard: flag suspected EEG clipping without signal modification or epoch exclusion | Exclude flagged epochs; interpolate saturated samples; apply generic denoising; ignore suspected clipping | QC found 57/16,688 epochs with repeated recording-specific EEG extrema. P5 preserved all original data and produced exactly the same 16,688 predictions as P0. Flagging was preferred because the lost signal cannot be reliably reconstructed and exclusion of entire 30-second epochs was not justified by the observed short plateaus. | 2e | No — retained for signal-quality documentation, not performance improvement |
-
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
