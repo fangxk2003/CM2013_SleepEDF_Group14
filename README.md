@@ -18,6 +18,10 @@ src/
       baseline.py         # BaselineFeatureExtractor: 11 values per epoch
     machine_learning/
       baseline.py         # Random-forest factory using supplied implementation
+      models.py           # Model factory registry
+      logistic_regression.py  # Scaled logistic regression
+      svm.py              # Scaled RBF-SVM
+      xgboost.py          # Optional XGBoost with fold-local label encoding/weights
       evaluation.py       # LOSO entry point using supplied evaluation harness
     track.py              # Connects the stages; inherits loading/reporting
     reference/            # Supplied course adapter and Sleep-EDF track
@@ -30,7 +34,9 @@ sleep_edf_data/           # Local EDF cache (ignored by Git)
 RESULTS.md                # Existing experiment/results log
 pyproject.toml            # Package metadata and direct dependencies
 uv.lock                   # Exact dependency versions shared by the team
-.python-version           # Shared Python version (3.13.3)
+.python-version           # Shared Python minor version (3.11)
+requirements-lock.txt      # Course scientific-package pins
+requirements-real.txt      # Course real-data dependencies
 ```
 
 Import the project track with `from sleepedf import SleepEDFTrack` and run the
@@ -43,7 +49,8 @@ exposes P1–P5 as **unimplemented experiments**, not completed preprocessing.
 
 ## Run
 
-All teammates use **Python 3.13.3** and the committed `uv.lock`. Install
+All teammates use **Python 3.11**, matching the course CI, and the committed
+`uv.lock`. The course guide does not prescribe a Python patch version. Install
 [uv](https://docs.astral.sh/uv/getting-started/installation/) (version 0.9.26
 or newer) once, then run this from the repository root after cloning or pulling:
 
@@ -52,21 +59,32 @@ uv sync --locked
 ```
 
 This creates or synchronizes `.venv`, installs the project in editable mode,
-and includes notebook kernel support. uv can download the pinned Python version
+and includes notebook kernel support. uv can download a Python 3.11 interpreter
 if it is missing. Use the same command on macOS, Linux, and Windows; activation
-is unnecessary when running commands through `uv run`. Prebuilt scientific
-packages target recent desktop systems (including macOS 12+ on Apple Silicon,
-Linux with glibc 2.27+, and Windows x64). Other architectures may need build
-tools when a pinned wheel is unavailable.
+is unnecessary when running commands through `uv run`. Systems without a
+compatible prebuilt package may need build tools.
 
-The NumPy, SciPy, scikit-learn, MNE, and Matplotlib versions match the existing
-baseline environment. PyWavelets and imbalanced-learn are included for the
-supplied wavelet and SMOTE/ADASYN options. The lock also fixes their transitive
-dependencies; platform-specific supporting packages may differ by operating
-system. Select this repository's `.venv` as your editor's Python interpreter and
-notebook kernel.
+The direct dependency versions match the course requirements files: NumPy 2.2.6,
+SciPy 1.15.3, scikit-learn 1.7.2, Matplotlib 3.10.9, PyWavelets 1.8.0,
+Pillow 12.2.0, imbalanced-learn 0.14.2, MNE 1.10.1 and WFDB 4.3.0.
+PyWavelets and imbalanced-learn support the supplied wavelet and SMOTE/ADASYN
+options; MNE and WFDB are the course real-data dependencies. `pyproject.toml`
+mirrors these pins, while `uv.lock` also fixes their transitive dependencies and
+the project’s notebook tools. Platform-specific supporting packages may differ
+by operating system. Select this repository's `.venv` as your editor's Python
+interpreter and notebook kernel.
 
-Commit and share **`.python-version`, `pyproject.toml`, and `uv.lock` together**.
+Check the installed environment:
+
+```bash
+uv run --locked python --version
+uv run --locked python -c "import numpy, scipy, sklearn, mne; print(numpy.__version__, scipy.__version__, sklearn.__version__, mne.__version__)"
+```
+
+These should show Python 3.11.x and `2.2.6 1.15.3 1.7.2 1.10.1`.
+
+Commit and share **`.python-version`, `pyproject.toml`, and `uv.lock` together**,
+along with the course requirements files when those pins change.
 Each teammate creates their own local `.venv` (already ignored by Git). Use
 `uv sync --locked` after pulling dependency changes. `--locked` refuses an
 outdated lockfile instead of silently changing the team's versions. See
@@ -118,6 +136,65 @@ Use `--output-dir <new-directory>` to choose another location. Existing output
 directories are never overwritten. These are evaluation reports, not a saved
 final model or submission CSV. Existing result artifacts retain their original
 provenance and the downloaded EDFs remain in their original cache.
+
+Results recorded before this environment switch used Python 3.13.3 and the
+earlier package versions listed in their provenance. Keep those records as
+historical evidence. Rerun the smoke check and baseline after switching to the
+course environment, and log the new results with their seed, code revision and
+environment before comparing them with subsequent experiments.
+
+## Compare models
+
+`sleepedf.machine_learning` exposes `make_model(name, **kwargs)` and the named
+factories `make_random_forest`, `make_logistic_regression`, `make_rbf_svm`, and
+`make_xgboost`. The track and baseline script still use the supplied random forest
+by default. Compare classifiers by passing a fresh estimator through `clf=`:
+
+```python
+from sleepedf import SleepEDFTrack
+from sleepedf.machine_learning import evaluate_loso, make_model
+
+track = SleepEDFTrack()
+recordings = track.smoke(n_subjects=3, n_epochs=40, seed=0)
+X, y, groups = track.build_dataset(recordings)
+
+for name in ("random_forest", "logistic_regression", "rbf_svm"):
+    report = evaluate_loso(track, X, y, groups, clf=make_model(name))
+    print(name, report["summary"], "macro-F1:", report["macro_f1"])
+```
+
+The synthetic example checks functionality; it does not establish performance on
+Sleep-EDF. For a real comparison, build the dataset once from the same selected
+recordings and use identical preprocessing, features and subject folds for every
+model. Both nights of a subject share a group. Scaling and feature selection are
+fitted within each training fold.
+
+Logistic regression uses L2 regularization and RBF-SVM uses an RBF kernel. Both
+include `StandardScaler` and default to `class_weight="balanced"`. Tune `C` for
+logistic regression and `C`/`gamma` for SVM through factory arguments. SVM defaults
+to `probability=False`. Random forest retains the supplied defaults and
+`imbalance=` options; the other factories configure weighting with `class_weight=`.
+`cfg["imbalance"]` does not change a classifier passed through `clf=`.
+
+XGBoost is an optional dependency. Install the extra with:
+
+```bash
+uv sync --locked --extra xgboost
+# Alternative for an environment managed with pip:
+pip install -e '.[xgboost]'
+```
+
+Then include `"xgboost"` in the loop. Its classifier encodes stage labels and
+computes balanced sample weights from each training fold. It supports scikit-learn
+cloning and exposes the underlying XGBoost estimator's nested parameters for
+tuning.
+
+Choose hyperparameters using subject-aware validation inside the development
+training data. If reporting tuned LOSO scores, use inner subject-wise validation
+inside each outer training fold; do not choose settings from the outer held-out
+subject. Report Cohen's kappa and its subject spread, macro-F1, per-stage scores,
+and confusion matrices. These factories use each epoch's existing features;
+temporal context is a separate experiment.
 
 ## Development
 

@@ -39,6 +39,8 @@ spread is half a result.
 
 | 2e | 2026-10-08 | P5: EEG suspected-clipping detection using recording-specific extrema and plateaus of at least 3 consecutive samples (30 ms); 57/16,688 epochs flagged, with no signal modification or exclusion | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | No improvement vs P0; all 16,688 predictions identical (0 differences) | Retained as a label-independent signal-quality safeguard: suspected clipping is documented without reconstructing potentially lost EEG information or altering classification | `7c838a1` |
 
+| 3a (course environment, smoke) | 2026-10-08 | Align Python and dependencies with the course guide; repeat the P0 synthetic smoke check (5 subjects × 80 epochs, seed 0) | mean cohens_kappa 0.614 (sd 0.314, range 0.137-0.933 across 5 subjects) | New environment reference | Kept to match the course pins; scores from the earlier environment remain historical | Pending commit; source HEAD `e470502`, see environment record below |
+| 3b (course environment, real baseline) | 2026-10-08 | Repeat P0 on subjects 0, 1, 2, both nights, under the course environment; unchanged features and classifier, seed 0 | mean cohens_kappa 0.723 (sd 0.115, range 0.596-0.822 across 3 subjects) | New environment reference | Kept to match the course pins; rerun preprocessing/model candidates under this environment before comparing them | Pending commit; source HEAD `e470502`, see saved provenance below |
 | 4 |  |  |  | yes / no |  |  |
 
 *"Better" means better under the same honest harness — same split unit, same evaluation mode,
@@ -46,6 +48,44 @@ same seed. A change that lowers the metric can still be the right call (simpler,
 robust across subjects, removes a leak). Say so in the column instead of quietly reverting it:
 "kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a
 silent higher mean.*
+
+## Course environment alignment — 2026-10-08
+
+The project now selects Python **3.11**, matching the course CI; the installed
+patch version used for these checks was **3.11.14**. The course guide specifies
+no Python patch version. Both course requirements files were copied unchanged,
+their pins mirrored in `pyproject.toml`, and `uv.lock` regenerated. Installed
+versions were verified against all nine course pins: NumPy 2.2.6, SciPy 1.15.3,
+scikit-learn 1.7.2, Matplotlib 3.10.9, PyWavelets 1.8.0, Pillow 12.2.0,
+imbalanced-learn 0.14.2, MNE 1.10.1 and WFDB 4.3.0.
+
+Validation passed: the synthetic smoke check including repeatability, all
+**33 unit tests** (including optional XGBoost), and the six-recording real-data
+P0 baseline. The synthetic run's pooled kappa was 0.616, macro-F1 0.686 and
+accuracy 0.713. The real run covered 16,688 epochs and three subject-separated
+LOSO folds; pooled kappa was 0.731, macro-F1 0.625, balanced accuracy 0.595 and
+accuracy 0.869. These establish new environment references. Earlier experiment
+scores retain their recorded environments and should be rerun under the course
+pins before comparison.
+
+Reproduce from the team repository root:
+
+```bash
+uv sync --locked
+uv run --locked python -B scripts/smoke_test.py
+uv run --locked python -B -m unittest discover -s tests -v
+uv run --locked python -B scripts/run_baseline.py --subjects 0 1 2 --nights 1 2
+```
+
+To include optional XGBoost in verification, use `uv sync --locked --extra xgboost`
+and `uv run --locked --extra xgboost python -B -m unittest discover -s tests -v`.
+
+Saved artifacts: [report](results/real__P0_20261008T112303518579Z/report.json),
+[provenance](results/real__P0_20261008T112303518579Z/provenance.json), and
+[complete environment/check record](results/real__P0_20261008T112303518579Z/environment.json).
+The provenance records source HEAD `e470502` together with the uncommitted
+working-tree state and source/data SHA-256 hashes. The environment record adds
+all installed package versions and SHA-256 hashes of the five environment files.
 
 ## Real EDF baseline - 2026-10-01
 

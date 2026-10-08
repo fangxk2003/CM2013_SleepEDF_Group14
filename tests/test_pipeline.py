@@ -11,9 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from sleepedf import SleepEDFTrack
 from sleepedf.feature_extraction import BaselineFeatureExtractor, FEATURE_NAMES
 from sleepedf.machine_learning import default_baseline, evaluate_loso
-from sleepedf.preprocessing import (
-    BrokenSegmentHandling, SubjectRecordingNormalisation, make_preprocessor,
-)
+from sleepedf.preprocessing import SubjectRecordingNormalisation, make_preprocessor
 from sleepedf.reference import report as reference_report
 from sleepedf.reference.sleep_edf import SleepEDFTrack as ReferenceSleepEDFTrack
 
@@ -56,12 +54,9 @@ class PipelineTests(unittest.TestCase):
         self.assertIs(self.track.preprocess(rec), rec)
 
     def test_planned_experiments_cannot_silently_run(self):
-        for name in ("p1", "bandpass", "p2", "wavelet", "p3", "broken_segments",
-                     "p4", "normalisation", "p5", "denoise"):
+        for name in ("p4", "normalisation"):
             with self.subTest(name=name), self.assertRaises(NotImplementedError):
                 self.track.build_dataset(self.recordings, {"preprocess": name})
-        with self.assertRaises(NotImplementedError):
-            BrokenSegmentHandling().detect(self.recordings[0])
         for name in ("p4", "normalisation"):
             normaliser = make_preprocessor(name)
             self.assertIsInstance(normaliser, SubjectRecordingNormalisation)

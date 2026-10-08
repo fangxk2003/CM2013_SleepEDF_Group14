@@ -1,5 +1,11 @@
 # Smoke-test comparison — 6 October 2026
 
+**Environment update — 8 October 2026.** The repository has switched to Python
+3.11 and the course dependency pins, installed through `uv sync --locked`.
+The table and investigation below describe the environments tested on 6 October;
+their historical numbers are preserved and do not report a new run after this
+switch.
+
 Compared the attached `it1_track_sleep_edf_smoke.ipynb` with
 `scripts/smoke_test.py`, the modular track, and the original local course checkout.
 The notebook was inspected as data; its installation/download cells were not run.
@@ -65,11 +71,12 @@ without their runtime information.
 
 ## Reproducible comparison
 
-Agree on one source revision and one pinned environment. To match the course
-reference, its local `requirements-lock.txt` specifies NumPy 2.2.6, SciPy 1.15.3
-and scikit-learn 1.7.2 (plus plotting/optional dependencies). To retain the current
-project baseline instead, pin the current versions consistently for everyone.
-Restart the kernel after installing packages, clear outputs and run from the top.
+Agree on one source revision and use the repository's shared environment:
+run `uv sync --locked` from its root. It now uses Python 3.11 and matches the
+course `requirements-lock.txt` pins, including NumPy 2.2.6, SciPy 1.15.3 and
+scikit-learn 1.7.2, with real-data dependencies from `requirements-real.txt`.
+Select the repository's `.venv` as the notebook kernel, restart it after syncing
+packages, clear outputs and run from the top.
 Use the same explicit smoke parameters and compare pooled kappa with pooled
 kappa, rather than the mean of per-subject kappas in `summary`.
 

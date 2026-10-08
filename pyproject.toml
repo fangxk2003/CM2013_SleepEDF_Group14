@@ -7,18 +7,22 @@ name = "cm2013-sleepedf-group14"
 version = "0.1.0"
 description = "Group 14 Sleep-EDF signal processing and classification pipeline"
 readme = "README.md"
-requires-python = "==3.13.3"
+requires-python = ">=3.11,<3.12"
 dependencies = [
-    # Preserve the scientific stack used by the recorded real-data baseline.
-    "numpy==2.5.3",
-    "scipy==1.18.1",
-    "scikit-learn==1.9.1",
-    "mne==1.13.2",
-    "matplotlib==3.11.2",
-    # Shared experiment options in the supplied adapter.
+    # Match the course requirements-lock.txt and requirements-real.txt.
+    "numpy==2.2.6",
+    "scipy==1.15.3",
+    "scikit-learn==1.7.2",
+    "mne==1.10.1",
+    "matplotlib==3.10.9",
     "PyWavelets==1.8.0",
+    "pillow==12.2.0",
     "imbalanced-learn==0.14.2",
+    "wfdb==4.3.0",
 ]
+
+[project.optional-dependencies]
+xgboost = ["xgboost>=3.0,<4"]
 
 [dependency-groups]
 dev = ["ipykernel>=6.29"]
