@@ -23,7 +23,7 @@ def make_preprocessor(name="none") -> Preprocessor:
         "p2": WaveletDenoising,
         "normalisation": SubjectRecordingNormalisation,
         "p4": SubjectRecordingNormalisation,
-        "denoise": TargetedDenoising,
+        "denoise_clipping": TargetedDenoising,
         "p5": TargetedDenoising,
     }
 

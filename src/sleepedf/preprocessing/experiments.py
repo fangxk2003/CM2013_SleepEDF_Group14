@@ -155,12 +155,117 @@ class SubjectRecordingNormalisation:
         raise NotImplementedError("P4: subject/recording normalisation is a planned experiment.")
 
 
-@dataclass
+"""@dataclass
 class TargetedDenoising:
-    """P5: choose a remedy only after visual/spectral evidence of corruption."""
+    "P5: choose a remedy only after visual/spectral evidence of corruption."
 
     noise_type: Literal["impulse", "baseline", "mains", "broadband"] | None = None
     evidence: str | None = None
 
     def transform(self, recording: Recording) -> Recording:
         raise NotImplementedError("P5: document confirmed corruption and implement its remedy.")
+"""
+
+
+@dataclass
+class TargetedDenoising:
+    """P5: flag suspected EEG clipping without modifying signals.
+
+    The detector is recording-local and label-independent.
+    It identifies runs of repeated EEG samples at the observed
+    recording minimum or maximum.
+
+    This is a quality-control flag, not signal reconstruction.
+    """
+
+    noise_type: Literal["impulse", "baseline", "mains", "broadband", "clipping"] = "clipping"
+    evidence: str | None = None
+    min_plateau_samples: int = 3
+
+    def detect(self, recording: Recording) -> np.ndarray:
+        """Return one boolean suspected-clipping flag per epoch."""
+
+        if self.noise_type != "clipping":
+            raise NotImplementedError(
+                f"Targeted denoising for {self.noise_type!r} "
+        "has not been implemented."
+            )
+
+        if self.min_plateau_samples < 2:
+            raise ValueError("min_plateau_samples must be >= 2")
+
+        eeg = np.asarray(recording.epochs["eeg"])
+
+        if eeg.ndim != 2:
+            raise ValueError("Expected EEG shape (n_epochs, n_samples)")
+
+        if eeg.size == 0:
+            return np.zeros(eeg.shape[0], dtype=bool)
+
+        if not np.all(np.isfinite(eeg)):
+            raise ValueError("Non-finite EEG values require separate QC.")
+
+        lower = np.min(eeg)
+        upper = np.max(eeg)
+
+        # A constant recording does not provide meaningful
+        # evidence of clipping.
+        if lower == upper:
+            return np.zeros(eeg.shape[0], dtype=bool)
+
+        # Check lower and upper limits separately, so switching
+        # between extrema cannot count as a continuous plateau.
+        at_lower = eeg == lower
+        at_upper = eeg == upper
+
+        flags = np.zeros(eeg.shape[0], dtype=bool)
+
+        for mask in (at_lower, at_upper):
+            for epoch_idx, row in enumerate(mask):
+                padded = np.concatenate(([False], row, [False]))
+                changes = np.diff(padded.astype(np.int8))
+
+                starts = np.flatnonzero(changes == 1)
+                ends = np.flatnonzero(changes == -1)
+
+                if np.any((ends - starts) >= self.min_plateau_samples):
+                    flags[epoch_idx] = True
+
+        return flags
+
+    def transform(self, recording: Recording) -> Recording:
+        """Attach QC metadata while preserving the original data."""
+
+        flags = self.detect(recording)
+
+        eeg = np.asarray(recording.epochs["eeg"])
+
+        lower = float(np.min(eeg)) if eeg.size else None
+        upper = float(np.max(eeg)) if eeg.size else None
+
+        meta = dict(recording.meta)
+
+        meta["suspected_clipping"] = {
+            "method": "recording_extrema_plateau",
+            "channel": "eeg",
+            "min_plateau_samples": self.min_plateau_samples,
+            "lower_extreme": lower,
+            "upper_extreme": upper,
+            "n_flagged": int(np.sum(flags)),
+            "flagged_epoch_indices": np.flatnonzero(flags).tolist(),
+            "action": "flag_only",
+            "confirmed_clipping": False,
+        }
+
+        meta["suspected_clipping_mask"] = flags.copy()
+
+        return Recording(
+            group=recording.group,
+            fs=recording.fs,
+            epochs={
+                ch: np.asarray(values).copy()
+                for ch, values in recording.epochs.items()
+            },
+            labels=np.asarray(recording.labels).copy(),
+            meta=meta,
+        )
