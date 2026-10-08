@@ -412,7 +412,71 @@ Independent validation:
 P0/P5 prediction comparison:
 16,688 identical predictions; 0 differences.
 
+### Course-environment reproduction of P0–P5 — 2026-10-08
 
+The preprocessing experiments were repeated in the `cm2013-team` Conda environment using Python 3.11.17.
+
+All experiments used the same three subjects (SC400, SC401 and SC402), two nights per subject, 11 supplied features, a Random Forest classifier and three subject-wise leave-one-subject-out (LOSO) folds. No cropping was applied.
+
+#### Performance comparison
+
+| Metric | P0 | P1 | P2 | P3 | P5 |
+|---|---:|---:|---:|---:|---:|
+| Evaluated epochs | 16,688 | 16,688 | 16,688 | 16,685 | 16,688 |
+| Mean subject-wise Cohen's kappa | 0.720 | **0.743** | 0.736 | 0.721 | 0.720 |
+| SD of subject-wise kappa | 0.119 | 0.114 | **0.102** | 0.125 | 0.119 |
+| Pooled accuracy | 0.868 | **0.880** | 0.877 | 0.869 | 0.868 |
+| Pooled Cohen's kappa | 0.729 | **0.752** | 0.743 | 0.731 | 0.729 |
+| Pooled macro-F1 | 0.622 | **0.654** | 0.648 | 0.621 | 0.622 |
+| Pooled balanced accuracy | 0.592 | **0.618** | 0.613 | 0.590 | 0.592 |
+
+#### Interpretation and decisions
+
+**P1 — Band-pass filtering**
+
+P1 (0.5–40 Hz EEG band-pass filtering) achieved the highest mean subject-wise Cohen's kappa and the best pooled classification metrics in this reproduction.
+
+P1 is retained as the current preferred preprocessing candidate.
+
+**P2 — Wavelet denoising**
+
+P2 (db4 wavelet denoising) also improved performance relative to P0. Although its mean kappa was slightly lower than P1, it achieved lower between-subject variability and better REM recall.
+
+Both P1 and P2 are therefore retained as preprocessing candidates for further evaluation.
+
+**P3 — Broken-segment handling**
+
+P3 excluded three epochs with simultaneous near-flat EEG and EOG, leaving 16,685 epochs.
+
+Its primary purpose remains data-quality control rather than classification improvement. Because P3 evaluates a slightly different set of epochs, its metrics should be interpreted with this difference in mind.
+
+**P5 — Suspected clipping detection**
+
+P5 flagged 57 of 16,688 epochs (0.342%) for suspected EEG clipping.
+
+No signals or labels were modified, and no epochs were excluded. Classification metrics and the confusion matrix remained identical to P0.
+
+P5 is retained as a quality-control safeguard, not as a denoising method. Flagged epochs are not necessarily confirmed instances of hardware saturation.
+
+#### Comparison with earlier experiments
+
+The relative ranking of P1 and P2 differs from the experiments performed in the earlier environment.
+
+In the earlier experiments, P2 achieved a slightly higher mean subject-wise Cohen's kappa than P1 (0.743 vs 0.737).
+
+In the course-environment reproduction, P1 achieved a higher mean kappa than P2 (0.743 vs 0.736).
+
+The historical results are preserved for transparency. These comparisons remain exploratory because only three subjects were evaluated.
+
+#### Saved results and provenance
+
+Each experiment generated a `report.json` containing the evaluation results and a `provenance.json` recording information needed for reproducibility.
+
+| Experiment | Results directory |
+|---|---|
+| P0 | `results/real__P0_20261008T115921097052Z/` |
+| P1 | `results/real__P1_20261008T120846779566Z/` |
+| P2 | `results/real__P2_20261008T121636
 
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
