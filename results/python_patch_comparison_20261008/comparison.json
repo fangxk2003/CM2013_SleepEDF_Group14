@@ -1,0 +1,607 @@
+{
+  "interpreter_patch": {
+    "left": "compiled_3.11.14_repeat1",
+    "right": "compiled_3.11.17_repeat1",
+    "reports": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "arrays": {
+      "features": {
+        "shape": [
+          16688,
+          11
+        ],
+        "dtype": "float64",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true,
+        "max_absolute_difference": 0.0,
+        "different_values": 0
+      },
+      "labels": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U3",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      },
+      "groups": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U5",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      }
+    },
+    "identical_forest_signatures": true,
+    "environment_controls": {
+      "packages": true,
+      "modules": true,
+      "site_packages": true,
+      "thread_settings": true,
+      "threadpools": true,
+      "numpy_config": true,
+      "machine": true,
+      "platform": true,
+      "isolated": true,
+      "no_site": true
+    },
+    "interpreter_build_controls": {
+      "same_compiler": true,
+      "same_configure_options_except_prefix": true,
+      "same_effective_compiler_flags": true
+    },
+    "experiment_controls": {
+      "files": true,
+      "config": true,
+      "selection": true,
+      "classifier": true,
+      "cropping": true,
+      "feature_names": true,
+      "subjects": true,
+      "recordings": true,
+      "class_counts": true,
+      "packages": true,
+      "source_head": true,
+      "source_sha256": true
+    },
+    "all_identical": true
+  },
+  "repeatability_314": {
+    "left": "compiled_3.11.14_repeat1",
+    "right": "compiled_3.11.14_repeat2",
+    "reports": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "arrays": {
+      "features": {
+        "shape": [
+          16688,
+          11
+        ],
+        "dtype": "float64",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true,
+        "max_absolute_difference": 0.0,
+        "different_values": 0
+      },
+      "labels": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U3",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      },
+      "groups": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U5",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      }
+    },
+    "identical_forest_signatures": true,
+    "environment_controls": {
+      "packages": true,
+      "modules": true,
+      "site_packages": true,
+      "thread_settings": true,
+      "threadpools": true,
+      "numpy_config": true,
+      "machine": true,
+      "platform": true,
+      "isolated": true,
+      "no_site": true
+    },
+    "interpreter_build_controls": {
+      "same_compiler": true,
+      "same_configure_options_except_prefix": true,
+      "same_effective_compiler_flags": true
+    },
+    "experiment_controls": {
+      "files": true,
+      "config": true,
+      "selection": true,
+      "classifier": true,
+      "cropping": true,
+      "feature_names": true,
+      "subjects": true,
+      "recordings": true,
+      "class_counts": true,
+      "packages": true,
+      "source_head": true,
+      "source_sha256": true
+    },
+    "all_identical": true
+  },
+  "repeatability_317": {
+    "left": "compiled_3.11.17_repeat1",
+    "right": "compiled_3.11.17_repeat2",
+    "reports": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "arrays": {
+      "features": {
+        "shape": [
+          16688,
+          11
+        ],
+        "dtype": "float64",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true,
+        "max_absolute_difference": 0.0,
+        "different_values": 0
+      },
+      "labels": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U3",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      },
+      "groups": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U5",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      }
+    },
+    "identical_forest_signatures": true,
+    "environment_controls": {
+      "packages": true,
+      "modules": true,
+      "site_packages": true,
+      "thread_settings": true,
+      "threadpools": true,
+      "numpy_config": true,
+      "machine": true,
+      "platform": true,
+      "isolated": true,
+      "no_site": true
+    },
+    "interpreter_build_controls": {
+      "same_compiler": true,
+      "same_configure_options_except_prefix": true,
+      "same_effective_compiler_flags": true
+    },
+    "experiment_controls": {
+      "files": true,
+      "config": true,
+      "selection": true,
+      "classifier": true,
+      "cropping": true,
+      "feature_names": true,
+      "subjects": true,
+      "recordings": true,
+      "class_counts": true,
+      "packages": true,
+      "source_head": true,
+      "source_sha256": true
+    },
+    "all_identical": true
+  },
+  "homebrew_vs_compiled": {
+    "left": "existing_3.11.14",
+    "right": "compiled_3.11.14_repeat1",
+    "reports": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "arrays": {
+      "features": {
+        "shape": [
+          16688,
+          11
+        ],
+        "dtype": "float64",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true,
+        "max_absolute_difference": 0.0,
+        "different_values": 0
+      },
+      "labels": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U3",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      },
+      "groups": {
+        "shape": [
+          16688
+        ],
+        "dtype": "<U5",
+        "same_shape_and_dtype": true,
+        "bitwise_identical": true,
+        "equal_values": true
+      }
+    },
+    "identical_forest_signatures": true,
+    "environment_controls": {
+      "packages": true,
+      "modules": true,
+      "site_packages": true,
+      "thread_settings": true,
+      "threadpools": true,
+      "numpy_config": true,
+      "machine": true,
+      "platform": true,
+      "isolated": true,
+      "no_site": true
+    },
+    "experiment_controls": {
+      "files": true,
+      "config": true,
+      "selection": true,
+      "classifier": true,
+      "cropping": true,
+      "feature_names": true,
+      "subjects": true,
+      "recordings": true,
+      "class_counts": true,
+      "packages": true,
+      "source_head": true,
+      "source_sha256": true
+    },
+    "all_identical": true
+  },
+  "historical_08_vs_10": {
+    "epochs": 16688,
+    "changed_predictions": 60,
+    "full_report_identical": false,
+    "changed_prediction_percent": 0.3595397890699904,
+    "changed_by_subject": {
+      "SC400": 33,
+      "SC401": 17,
+      "SC402": 10
+    },
+    "identical": {
+      "y_true": true,
+      "y_pred": false,
+      "y_group": true,
+      "y_fold": true,
+      "labels": true,
+      "confusion": false,
+      "per_group": false,
+      "per_fold": false,
+      "spread": false,
+      "summary": false,
+      "accuracy": false,
+      "cohens_kappa": false,
+      "macro_f1": false,
+      "balanced_accuracy": false
+    },
+    "metrics": {
+      "accuracy": {
+        "left": 0.879,
+        "right": 0.88
+      },
+      "cohens_kappa": {
+        "left": 0.75,
+        "right": 0.752
+      },
+      "macro_f1": {
+        "left": 0.651,
+        "right": 0.654
+      },
+      "balanced_accuracy": {
+        "left": 0.615,
+        "right": 0.618
+      }
+    }
+  },
+  "historical_08_vs_current": {
+    "existing_3.11.14": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "compiled_3.11.14_repeat1": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    },
+    "compiled_3.11.17_repeat1": {
+      "epochs": 16688,
+      "changed_predictions": 0,
+      "full_report_identical": true,
+      "changed_prediction_percent": 0.0,
+      "changed_by_subject": {},
+      "identical": {
+        "y_true": true,
+        "y_pred": true,
+        "y_group": true,
+        "y_fold": true,
+        "labels": true,
+        "confusion": true,
+        "per_group": true,
+        "per_fold": true,
+        "spread": true,
+        "summary": true,
+        "accuracy": true,
+        "cohens_kappa": true,
+        "macro_f1": true,
+        "balanced_accuracy": true
+      },
+      "metrics": {
+        "accuracy": {
+          "left": 0.879,
+          "right": 0.879
+        },
+        "cohens_kappa": {
+          "left": 0.75,
+          "right": 0.75
+        },
+        "macro_f1": {
+          "left": 0.651,
+          "right": 0.651
+        },
+        "balanced_accuracy": {
+          "left": 0.615,
+          "right": 0.615
+        }
+      }
+    }
+  }
+}

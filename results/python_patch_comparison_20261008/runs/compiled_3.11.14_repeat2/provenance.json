@@ -1,0 +1,202 @@
+{
+  "data_kind": "real Sleep-EDF, not synthetic",
+  "started_utc": "2026-10-08T14:51:03.300782+00:00",
+  "finished_utc": "2026-10-08T14:51:31.940924+00:00",
+  "cache_dir": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/sleep_edf_data",
+  "files": [
+    {
+      "path": "physionet-sleep-data/SC4001E0-PSG.edf",
+      "bytes": 48338048,
+      "sha256": "2b40a18adf76af69a42d6db1f30f31d26b369f6d27ca0050ef30147ef892b131"
+    },
+    {
+      "path": "physionet-sleep-data/SC4001EC-Hypnogram.edf",
+      "bytes": 4620,
+      "sha256": "a4cf67694ade1b52a0ddd06d5817fd45d2d3e8bac5302f640f3e9cfbbf12a996"
+    },
+    {
+      "path": "physionet-sleep-data/SC4002E0-PSG.edf",
+      "bytes": 51621248,
+      "sha256": "bf91934cdbf7c9577bc91b411462ddb51c418e17e10a2f59a15feeeb917b0a5f"
+    },
+    {
+      "path": "physionet-sleep-data/SC4002EC-Hypnogram.edf",
+      "bytes": 4580,
+      "sha256": "76e8457a67eaaaa62c7f6cc6e098fbe1c0a9c3fa02fa90ea01460aa481d71e82"
+    },
+    {
+      "path": "physionet-sleep-data/SC4011E0-PSG.edf",
+      "bytes": 51110528,
+      "sha256": "9e4c34f3f631275990fd7a2d61a24e998c7b03eb9b37ebe5cd7c8323d8310a15"
+    },
+    {
+      "path": "physionet-sleep-data/SC4011EH-Hypnogram.edf",
+      "bytes": 3896,
+      "sha256": "5bbf7b4ed8a95c8d20e4347b08c2ded2ee21e2dac4680dedf629795adc2edc83"
+    },
+    {
+      "path": "physionet-sleep-data/SC4012E0-PSG.edf",
+      "bytes": 51986048,
+      "sha256": "1aa575e87d16f6c8f73c186d7a64a212de919bb9cbb62ac7c1750d3896852095"
+    },
+    {
+      "path": "physionet-sleep-data/SC4012EC-Hypnogram.edf",
+      "bytes": 5082,
+      "sha256": "b6323df8b3867a5fdbd80f0cd8233b59659ac496fa48c8c7277f48bfbb1d9a0e"
+    },
+    {
+      "path": "physionet-sleep-data/SC4021E0-PSG.edf",
+      "bytes": 51147008,
+      "sha256": "810adaedf42621e389ca767274045fbafb123bbc5d99bc15ce2c5bacb52e378c"
+    },
+    {
+      "path": "physionet-sleep-data/SC4021EH-Hypnogram.edf",
+      "bytes": 4804,
+      "sha256": "62b49b26bf08941cb0e974cfeeb0a820bf7dd43fb0c66dd89b4c3a6c0ee45dd8"
+    },
+    {
+      "path": "physionet-sleep-data/SC4022E0-PSG.edf",
+      "bytes": 50271488,
+      "sha256": "8573b32d49ff646b8c1c3589380346be02dc4f25ebcbabb05626cbdffd96d93a"
+    },
+    {
+      "path": "physionet-sleep-data/SC4022EJ-Hypnogram.edf",
+      "bytes": 5292,
+      "sha256": "5289ca8a9417307cbbf8b2a4e511909ac742c69d45c17aee7f1731a2a98c49ce"
+    }
+  ],
+  "config": {
+    "seed": 0,
+    "preprocess": "bandpass",
+    "spectral_method": "welch",
+    "select": "none",
+    "loso_max_groups": 3
+  },
+  "selection": {
+    "subjects": [
+      0,
+      1,
+      2
+    ],
+    "n_subjects": null,
+    "nights": [
+      1,
+      2
+    ]
+  },
+  "classifier": {
+    "factory": "sleepedf.machine_learning.default_baseline",
+    "seed": 0,
+    "n_estimators": 200,
+    "imbalance": "balanced"
+  },
+  "cropping": "none",
+  "epoch_seconds": 30,
+  "fs": 100,
+  "feature_shape": [
+    16688,
+    11
+  ],
+  "feature_names": [
+    "eeg_delta",
+    "eeg_theta",
+    "eeg_alpha",
+    "eeg_sigma",
+    "eeg_beta",
+    "eeg_hjorth_activity",
+    "eeg_hjorth_mobility",
+    "eeg_hjorth_complexity",
+    "eeg_spec_entropy",
+    "eog_movement",
+    "emg_rms"
+  ],
+  "subjects": [
+    "SC400",
+    "SC401",
+    "SC402"
+  ],
+  "recordings": [
+    {
+      "record": "SC4001E0",
+      "subject": "SC400",
+      "epochs": 2650
+    },
+    {
+      "record": "SC4002E0",
+      "subject": "SC400",
+      "epochs": 2829
+    },
+    {
+      "record": "SC4011E0",
+      "subject": "SC401",
+      "epochs": 2802
+    },
+    {
+      "record": "SC4012E0",
+      "subject": "SC401",
+      "epochs": 2848
+    },
+    {
+      "record": "SC4021E0",
+      "subject": "SC402",
+      "epochs": 2804
+    },
+    {
+      "record": "SC4022E0",
+      "subject": "SC402",
+      "epochs": 2755
+    }
+  ],
+  "class_counts": {
+    "N1": 596,
+    "N2": 2792,
+    "N3": 932,
+    "REM": 1028,
+    "W": 11340
+  },
+  "python": "3.11.14",
+  "packages": {
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "scikit-learn": "1.7.2",
+    "mne": "1.10.1"
+  },
+  "source_head": "78d55b0fd9c0c08ea783f21c7e714f7f685e9480",
+  "working_tree_status": "?? results/python_patch_comparison_20261008/\n",
+  "source_sha256": {
+    "scripts/_bootstrap.py": "a8381f1cf36545eb15bcc808c6d9876fdce67a3dd4a8f3d633aa20bc40b8b4f9",
+    "scripts/diagnose_p3.py": "96e0c3e68e7b3483b95db00987a6330fffa396ae463fffb564a6632f14eda90f",
+    "scripts/diagnose_p5.py": "427d37d944cb17a154edecf896ffd8b6ceb4400b7cc641c030087a1daff769f8",
+    "scripts/download.py": "2bd4d8e6c3806346f21627f4771b64e80d68380c3d53afcfde1a044e115067a5",
+    "scripts/run_baseline.py": "8da17a6990f3d3cbb6fa349a2393610b4ad92ea089b41bcd6d66cd1dc56b44fd",
+    "scripts/smoke_test.py": "0994f3b2a6fb5d42e7a75e1666892ba6cf57b7ae2e80c1a907d3a2077156711a",
+    "scripts/test_p5_flags.py": "450650849a73302f884ece83cd97a4ad278a42f9c155d08809f4dce3de8cb4ec",
+    "scripts/visualisation.py": "3b92081be918e832d32d656db303e2bcb647cd2b7c6dbd31c48049dd669af263",
+    "scripts/visualisation_results.py": "5fab61e24244edbd7aaf3f2a8de2cc14c7ac96d8de8cdb5737fef1bbf7c042a0",
+    "src/bsp/__init__.py": "9085cabc4acd8823997d1fd0cec7a14522f7508c408152cea75214f1906c214d",
+    "src/bsp/biosignals.py": "4269d9733c7fadf2a97abd0e94c13f63bfec1fb6070f55d33c5950955a6081cd",
+    "src/bsp/bookstyle.py": "c91ff6e8f0c20d0cacea95e302c70632deba3c3ce85e94d69fb7fdf65270f590",
+    "src/bsp/loaders.py": "e75fc77b2515902aec9a6584cd74cfb06d88e30747018416cf65a7e2f5313536",
+    "src/bsp/metrics.py": "ebe679a66b8a626de450698e13e0e718edb9b8055756ad6d98163542d86095c5",
+    "src/bsp/notebook_checks.py": "87664b9dda0a5d834565fead9222ddfff17821499617a5eb9b3dc7d8d6c36977",
+    "src/bsp/sleep_pipeline.py": "a9cc1ec301b24a449c0bc986ee36c9b37ac332073251a6cffd98b98fbf631569",
+    "src/sleepedf/__init__.py": "9f84605ac66034d89583948862ee6975d9e6f44ca0f2bcd57a08a7ebfd82eceb",
+    "src/sleepedf/feature_extraction/__init__.py": "a2b38c67c1681e2ee7210491a80efc794c29b3b36756a7a2636c0fcf9f96b3b9",
+    "src/sleepedf/feature_extraction/baseline.py": "c0e9ea2628b6eb11d10c0e4888591e16806936d69fa3078eea7342e3eb954dd3",
+    "src/sleepedf/machine_learning/__init__.py": "b82a9bcef233628b9b43aabc74497c5a7b0d9db5b6d18d710910b28ee085fb87",
+    "src/sleepedf/machine_learning/baseline.py": "05ffbdbf2aab3e5fe776f64473b1e0e3b4b06457a3940c282128cc9d409e3094",
+    "src/sleepedf/machine_learning/evaluation.py": "40a7022aa4d80849c2c8611d6e74d9f5cbf7270a4769caac82ebe3f67752e987",
+    "src/sleepedf/machine_learning/logistic_regression.py": "3cfbac55fa410208d5cdafdf795680d10581ea1d2a19ecf6fc3ad54e9f703201",
+    "src/sleepedf/machine_learning/models.py": "5cd8392324a404d3cbe04135aecdfa2232284b904d670c4b9bc0caeff7cb519c",
+    "src/sleepedf/machine_learning/svm.py": "84aac51e7586ddc107e9d87dcd37a786835003aca36417e05ba6feb557cf1d13",
+    "src/sleepedf/machine_learning/xgboost.py": "568a574d32428edc9ed6d978221037fb07cdefc654ed68d06818be259c36d45d",
+    "src/sleepedf/preprocessing/__init__.py": "64700c63f69e3d5f7afa9b161d994a550b90f8e9cd63c54eb7ff98460658974a",
+    "src/sleepedf/preprocessing/base.py": "052f6efb9d08587fe8b6a04aae4838dd4325014109618d5887fca31a269c7854",
+    "src/sleepedf/preprocessing/experiments.py": "bd8efaea659ad3d53fe92ce693f6750a7f187b93ad1220ec80678586e8a043b5",
+    "src/sleepedf/reference/__init__.py": "4b680b8fef7c10d8c43c42c0bb24bceeed5be2cbff1925147531176232fe432d",
+    "src/sleepedf/reference/adapter.py": "3124ebf5c067417d62b4b4bb2d87dc40217853cb6235dad97c6e37b8344c0c62",
+    "src/sleepedf/reference/report.py": "5d9b9ad36ca77a0313f742048669ea0445917ba7537daf3bf8cd80b7147f79b8",
+    "src/sleepedf/reference/sleep_edf.py": "10d5500d38e88d7354aea9aa629563073f4dbc88fdc604db22aadcc176ddb6c6",
+    "src/sleepedf/track.py": "423f4d74b099cddea404f21f9a135dfc90ba2eb611150b208ec66ee3bf59a8f7"
+  }
+}

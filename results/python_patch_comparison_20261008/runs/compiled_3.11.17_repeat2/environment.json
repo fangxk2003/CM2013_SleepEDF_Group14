@@ -1,0 +1,164 @@
+{
+  "python": "3.11.17",
+  "sys_version": "3.11.17 (main, Oct  8 2026, 16:46:05) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "executable": "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.17/python.exe",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "compiler": "Clang 21.0.0 (clang-2100.1.1.101)",
+  "config_args": "'--prefix=/private/tmp/sleepedf-python-patch-20261008/install-3.11.17' '--without-ensurepip' '--with-openssl=/opt/homebrew/opt/openssl@3' 'CC=/usr/bin/clang' 'CFLAGS=-O2'",
+  "cflags": "-DNDEBUG -g -fwrapv -O3 -Wall -O2 -O2",
+  "isolated": 1,
+  "no_site": 1,
+  "sys_path": [
+    "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/scripts",
+    "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/src",
+    "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages",
+    "/private/tmp/sleepedf-python-patch-20261008/install-3.11.17/lib/python311.zip",
+    "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.17/Lib",
+    "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.17/build/lib.macosx-26.6-arm64-3.11"
+  ],
+  "site_packages": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages",
+  "packages": {
+    "platformdirs": "4.12.4",
+    "pexpect": "4.9.0",
+    "soundfile": "0.14.0",
+    "cloudpickle": "3.1.2",
+    "kiwisolver": "1.5.1",
+    "sklearn-compat": "0.1.6",
+    "numpy": "2.2.6",
+    "jedi": "0.20.0",
+    "ptyprocess": "0.7.0",
+    "fonttools": "4.66.1",
+    "packaging": "26.3",
+    "joblib": "1.6.0",
+    "matplotlib": "3.10.9",
+    "scikit-learn": "1.7.2",
+    "Pygments": "2.21.0",
+    "prompt_toolkit": "3.0.53",
+    "executing": "2.2.1",
+    "ipykernel": "7.4.0",
+    "requests": "2.34.2",
+    "mne": "1.10.1",
+    "tornado": "6.5.10",
+    "yarl": "1.25.1",
+    "contourpy": "1.3.3",
+    "matplotlib-inline": "0.2.2",
+    "pillow": "12.2.0",
+    "traitlets": "5.16.1",
+    "propcache": "0.5.4",
+    "ipython_pygments_lexers": "1.1.1",
+    "PyWavelets": "1.8.0",
+    "aiohappyeyeballs": "2.7.1",
+    "wcwidth": "0.9.2",
+    "stack-data": "0.6.3",
+    "lazy-loader": "0.6",
+    "tqdm": "4.70.1",
+    "pyzmq": "27.2.0",
+    "pooch": "1.9.0",
+    "urllib3": "2.8.0",
+    "aiohttp": "3.14.4",
+    "pycparser": "3.0",
+    "appnope": "1.0.0",
+    "python-dateutil": "2.9.0.post0",
+    "fsspec": "2026.9.0",
+    "jupyter_client": "8.10.0",
+    "frozenlist": "1.8.0",
+    "cffi": "2.1.1",
+    "aiosignal": "1.4.0",
+    "certifi": "2026.7.22",
+    "jupyter_core": "5.9.1",
+    "pure_eval": "0.2.4",
+    "cycler": "0.12.1",
+    "Jinja2": "3.1.6",
+    "threadpoolctl": "3.7.0",
+    "pandas": "3.0.6",
+    "imbalanced-learn": "0.14.2",
+    "attrs": "26.1.0",
+    "nest-asyncio2": "1.7.4",
+    "debugpy": "1.8.22",
+    "typing_extensions": "4.16.0",
+    "MarkupSafe": "3.0.4",
+    "asttokens": "3.0.2",
+    "decorator": "5.3.1",
+    "wfdb": "4.3.0",
+    "psutil": "7.2.2",
+    "scipy": "1.15.3",
+    "cm2013-sleepedf-group14": "0.1.0",
+    "parso": "0.8.7",
+    "charset-normalizer": "3.5.2",
+    "pyparsing": "3.3.3",
+    "six": "1.17.0",
+    "xgboost": "3.2.0",
+    "multidict": "6.9.1",
+    "idna": "3.20",
+    "comm": "0.2.3",
+    "ipython": "9.17.1"
+  },
+  "modules": {
+    "numpy": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/numpy/__init__.py",
+      "sha256": "6ae17b070c0f70a8e3cad89a510a256942e5a1f37ea5feb120cec167ed2a6236"
+    },
+    "scipy": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/scipy/__init__.py",
+      "sha256": "185913aa107512fafd5cf89dfd452a8719b45a6eba833e2dcee2cbfd18b4bbe5"
+    },
+    "sklearn": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/sklearn/__init__.py",
+      "sha256": "7dddca4734d14252e358db0ae8bfa0b54da4de7a1f66ba4c92b39b751bb363b4"
+    },
+    "mne": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/mne/__init__.py",
+      "sha256": "c5524005797cfcd69463c08d5bd2eec21e9449f30edef3c82b654b87fae40e37"
+    },
+    "sleepedf": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/src/sleepedf/__init__.py",
+      "sha256": "9f84605ac66034d89583948862ee6975d9e6f44ca0f2bcd57a08a7ebfd82eceb"
+    },
+    "numpy._core._multiarray_umath": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/numpy/_core/_multiarray_umath.cpython-311-darwin.so",
+      "sha256": "a11d151bacb8889e4ca2015e98864030e4f20f04e0723da999832e07608fb9c4"
+    },
+    "scipy.signal._sigtools": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/scipy/signal/_sigtools.cpython-311-darwin.so",
+      "sha256": "176706327164b139365afec3725487fdae891ad209359b93573ee05519092464"
+    },
+    "scipy.fft._pocketfft.pypocketfft": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/scipy/fft/_pocketfft/pypocketfft.cpython-311-darwin.so",
+      "sha256": "af4fbd54e8f1f2cb8b5892be5253067f05ede4a7c148062caf5af6ec874652c6"
+    },
+    "scipy.linalg._fblas": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/scipy/linalg/_fblas.cpython-311-darwin.so",
+      "sha256": "0a6b4fb102de8e2ec0d8a9aa68756eb225af8ab37de961a42ae9dd8b81d4558d"
+    },
+    "sklearn.tree._tree": {
+      "path": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/sklearn/tree/_tree.cpython-311-darwin.so",
+      "sha256": "01c07ddc914909e04b72e1c2895da4df4836fb128ce6f43a8dd96885ea5fbad5"
+    }
+  },
+  "numpy_config": "{\n  \"Compilers\": {\n    \"c\": {\n      \"name\": \"clang\",\n      \"linker\": \"ld64\",\n      \"version\": \"15.0.0\",\n      \"commands\": \"cc\"\n    },\n    \"cython\": {\n      \"name\": \"cython\",\n      \"linker\": \"cython\",\n      \"version\": \"3.1.0\",\n      \"commands\": \"cython\"\n    },\n    \"c++\": {\n      \"name\": \"clang\",\n      \"linker\": \"ld64\",\n      \"version\": \"15.0.0\",\n      \"commands\": \"c++\"\n    }\n  },\n  \"Machine Information\": {\n    \"host\": {\n      \"cpu\": \"aarch64\",\n      \"family\": \"aarch64\",\n      \"endian\": \"little\",\n      \"system\": \"darwin\"\n    },\n    \"build\": {\n      \"cpu\": \"aarch64\",\n      \"family\": \"aarch64\",\n      \"endian\": \"little\",\n      \"system\": \"darwin\"\n    }\n  },\n  \"Build Dependencies\": {\n    \"blas\": {\n      \"name\": \"accelerate\",\n      \"found\": true,\n      \"version\": \"unknown\",\n      \"detection method\": \"system\",\n      \"include directory\": \"unknown\",\n      \"lib directory\": \"unknown\",\n      \"openblas configuration\": \"unknown\",\n      \"pc file directory\": \"unknown\"\n    },\n    \"lapack\": {\n      \"name\": \"accelerate\",\n      \"found\": true,\n      \"version\": \"unknown\",\n      \"detection method\": \"system\",\n      \"include directory\": \"unknown\",\n      \"lib directory\": \"unknown\",\n      \"openblas configuration\": \"unknown\",\n      \"pc file directory\": \"unknown\"\n    }\n  },\n  \"Python Information\": {\n    \"path\": \"/private/var/folders/w5/_8wgjw3j5cg6mgrth3s2kg9m0000gn/T/build-env-s3xuyf8s/bin/python\",\n    \"version\": \"3.11\"\n  },\n  \"SIMD Extensions\": {\n    \"baseline\": [\n      \"NEON\",\n      \"NEON_FP16\",\n      \"NEON_VFPV4\",\n      \"ASIMD\"\n    ],\n    \"found\": [\n      \"ASIMDHP\"\n    ],\n    \"not found\": [\n      \"ASIMDFHM\"\n    ]\n  }\n}\n",
+  "threadpools": [
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "libomp",
+      "filepath": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/sklearn/.dylibs/libomp.dylib",
+      "version": null
+    }
+  ],
+  "thread_settings": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "BLIS_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1"
+  },
+  "runtime_seconds": 29.347735583985923,
+  "array_sha256": {
+    "features": "8be03941b155b20a0f9468798929712a748eff6002e90cd3ede0ca62979372b1",
+    "labels": "dc9cbe242bed5dd9ded8d7da160d2599cac240af7a5554befdc4c481147fc2db",
+    "groups": "30a6e78b37166c94ed459e20c58e3f066b72ba18b755eab736c1133418c4ad32"
+  }
+}

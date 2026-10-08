@@ -1,0 +1,24 @@
+/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages/numpy/__config__.py:155: UserWarning: Install `pyyaml` for better output
+  warnings.warn("Install `pyyaml` for better output", stacklevel=1)
+Loading 6 PSG/hypnogram pairs from /Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/sleep_edf_data
+  SC4001E0: subject=SC400, epochs=2650
+  SC4002E0: subject=SC400, epochs=2829
+  SC4011E0: subject=SC401, epochs=2802
+  SC4012E0: subject=SC401, epochs=2848
+  SC4021E0: subject=SC402, epochs=2804
+  SC4022E0: subject=SC402, epochs=2755
+Extracting the 11 supplied features (preprocess=bandpass, no cropping)...
+Evaluating 16688 epochs with 3 LOSO folds...
+mean cohens_kappa 0.741 (sd 0.116, range 0.611-0.834 across 3 subjects)
+accuracy: 0.879
+cohens_kappa: 0.75
+macro_f1: 0.651
+balanced_accuracy: 0.615
+Confusion matrix (rows=true, columns=predicted): ['W', 'N1', 'N2', 'N3', 'REM']
+[[11047   141    71    67    14]
+ [  208   137   185     0    66]
+ [  138    19  2530    42    63]
+ [  306     0   266   360     0]
+ [   29    53   350     0   596]]
+Saved results to /Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/results/python_patch_comparison_20261008/runs/compiled_3.11.14_repeat1
+Captured feature arrays and all three trained forest signatures.

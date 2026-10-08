@@ -1,0 +1,38 @@
+{
+  "plan": [
+    {
+      "name": "existing_3.11.14",
+      "executable": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/bin/python",
+      "python": "3.11.14"
+    },
+    {
+      "name": "compiled_3.11.14_repeat1",
+      "executable": "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.14/python.exe",
+      "python": "3.11.14"
+    },
+    {
+      "name": "compiled_3.11.17_repeat1",
+      "executable": "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.17/python.exe",
+      "python": "3.11.17"
+    },
+    {
+      "name": "compiled_3.11.14_repeat2",
+      "executable": "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.14/python.exe",
+      "python": "3.11.14"
+    },
+    {
+      "name": "compiled_3.11.17_repeat2",
+      "executable": "/private/tmp/sleepedf-python-patch-20261008/Python-3.11.17/python.exe",
+      "python": "3.11.17"
+    }
+  ],
+  "shared_site_packages": "/Users/fangxk2003/Documents/CM2013_SignalProcessing/SleepEDF/CM2013_SleepEDF_Group14/.venv/lib/python3.11/site-packages",
+  "thread_settings": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "BLIS_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1"
+  }
+}

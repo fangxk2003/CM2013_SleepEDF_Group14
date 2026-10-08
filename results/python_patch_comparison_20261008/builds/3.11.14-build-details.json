@@ -1,0 +1,10 @@
+{
+  "python": "3.11.14",
+  "sys_version": "3.11.14 (main, Oct  8 2026, 16:45:37) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "compiler": "Clang 21.0.0 (clang-2100.1.1.101)",
+  "machine": "arm64",
+  "config_args": "'--prefix=/private/tmp/sleepedf-python-patch-20261008/install-3.11.14' '--without-ensurepip' '--with-openssl=/opt/homebrew/opt/openssl@3' 'CC=/usr/bin/clang' 'CFLAGS=-O2'",
+  "cflags": "-DNDEBUG -g -fwrapv -O3 -Wall -O2",
+  "soabi": "cpython-311-darwin",
+  "deployment_target": "26.6"
+}
