@@ -22,6 +22,7 @@ import numpy as np
 
 from sleepedf.machine_learning import default_baseline, evaluate_loso
 from sleepedf import SleepEDFTrack
+from sleepedf.preprocessing.experiments import TargetedDenoising
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -83,9 +84,9 @@ def build_parser():
     )
     parser.add_argument(
         "--preprocess",
-        choices=["none","bandpass", "wavelet","broken_segments"], 
+        choices=["none","bandpass", "wavelet","broken_segments","denoise_clipping"],
         default="none",
-        help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising, broken_segments=P3 exclude objectively identified near-flat epochs (EEG+EOG).",
+        help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising, broken_segments=P3 exclude objectively identified near-flat epochs (EEG+EOG), denoise_clipping=P5 flag suspected EEG clipping.",
     )
     return parser
 
@@ -162,6 +163,7 @@ def main():
         "bandpass": "P1",
         "wavelet": "P2",
         "broken_segments": "P3",
+        "denoise_clipping": "P5",
     }[args.preprocess]
     output = (args.output_dir or ROOT / "results" /
               f"real__{experiment}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
@@ -188,6 +190,60 @@ def main():
                                 for v in rec.epochs.values()):
             raise ValueError(f"Unexpected sampling rate or epoch shape in {rec.meta['record']}")
         print(f"  {rec.meta['record']}: subject={rec.group}, epochs={len(rec.labels)}", flush=True)
+
+    clipping_qc = None
+
+    if args.preprocess == "denoise_clipping":
+        detector = TargetedDenoising(
+            noise_type="clipping",
+            min_plateau_samples=3,
+        )
+
+        clipping_qc = {
+            "method": "recording_extrema_plateau",
+            "channel": "eeg",
+            "action": "flag_only",
+            "confirmed_clipping": False,
+            "min_plateau_samples": 3,
+            "threshold_duration_ms": 30.0,
+            "extrema_scope": "individual_full_recording",
+            "recordings": [],
+        }
+
+        for rec in recs:
+            processed = detector.transform(rec)
+            info = processed.meta["suspected_clipping"]
+
+            clipping_qc["recordings"].append({
+                "record": rec.meta["record"],
+                "subject": rec.group,
+                "n_epochs": len(rec.labels),
+                "n_flagged": info["n_flagged"],
+                "flagged_epoch_indices": info["flagged_epoch_indices"],
+                "lower_extreme_uv": (
+                    info["lower_extreme"] * 1e6
+                    if info["lower_extreme"] is not None else None
+                ),
+                "upper_extreme_uv": (
+                    info["upper_extreme"] * 1e6
+                    if info["upper_extreme"] is not None else None
+                ),
+            })
+
+        clipping_qc["total_epochs"] = sum(
+            item["n_epochs"] for item in clipping_qc["recordings"]
+        )
+
+        clipping_qc["total_flagged"] = sum(
+            item["n_flagged"] for item in clipping_qc["recordings"]
+        )
+
+        print(
+            f"P5 QC: {clipping_qc['total_flagged']}/"
+            f"{clipping_qc['total_epochs']} epochs flagged.",
+            flush=True,
+        )
+
 
     print(
         f"Extracting the 11 supplied features "
@@ -229,6 +285,16 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     for name, value in (("report.json", rep), ("provenance.json", provenance)):
         (output / name).write_text(json.dumps(json_ready(value), indent=2, allow_nan=False) + "\n")
+
+    if clipping_qc is not None:
+        (output / "clipping_qc.json").write_text(
+            json.dumps(
+                json_ready(clipping_qc),
+                indent=2,
+                allow_nan=False,
+            ) + "\n"
+        )
+
     print(rep["summary"])
     for key in ("accuracy", "cohens_kappa", "macro_f1", "balanced_accuracy"):
         print(f"{key}: {rep[key]}")

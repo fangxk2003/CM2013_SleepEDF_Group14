@@ -36,6 +36,9 @@ spread is half a result.
 | 2b | 2026-10-06 | P1: EEG 0.5–40 Hz zero-phase Butterworth band-pass; tested as a controlled preprocessing candidate | mean cohens_kappa 0.737 (sd 0.074, range 0.666-0.813 across 3 subjects) | Yes — pooled κ 0.710→0.742; macro-F1 0.648→0.683 | - | `e6cada5` |
 | 2c | 2026-10-06 | P2: EEG wavelet denoising using db4, automatic decomposition level (max 5), soft thresholding and automatic per-epoch VisuShrink threshold; EOG and EMG unchanged | mean Cohen's kappa 0.743 (sd 0.065, range 0.669–0.781 across 3 subjects) | Yes vs P0; only marginally higher kappa than P1, with lower macro-F1 and balanced accuracy | P1 retained as the current preprocessing candidate because it provides more balanced stage-wise performance |`97447e2` |
 | 2d | 2026-10-06 | P3: objective broken-segment handling; epochs with simultaneous full-epoch near-flat EEG and EOG were excluded using thresholds fixed from QC before evaluation; 3/16,688 epochs were removed | mean Cohen's kappa 0.694 (sd 0.109, range 0.582–0.800 across 3 subjects) | No — mean kappa decreased from 0.704 to 0.694 vs P0; macro-F1 0.648→0.644 | Retained as a data-quality safeguard rather than a performance improvement: the rule removes objectively unreliable epochs and provides predefined handling if similar sustained flatlines occur in additional recordings |`7c34ebf` |
+
+| 2e | 2026-10-08 | P5: EEG suspected-clipping detection using recording-specific extrema and plateaus of at least 3 consecutive samples (30 ms); 57/16,688 epochs flagged, with no signal modification or exclusion | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | No improvement vs P0; all 16,688 predictions identical (0 differences) | Retained as a label-independent signal-quality safeguard: suspected clipping is documented without reconstructing potentially lost EEG information or altering classification | `7c838a1` |
+
 | 4 |  |  |  | yes / no |  |  |
 
 *"Better" means better under the same honest harness — same split unit, same evaluation mode,
@@ -286,6 +289,93 @@ near-flat segments occur in additional recordings. The small decrease in
 classification metrics on the current development cohort is therefore not
 used as a reason to retain objectively broken epochs.
 
+
+### P5 — EEG clipping detection and quality flagging
+
+**Motivation.**
+
+Exploratory EEG quality-control analysis identified unusually repeated amplitude extrema in several Sleep-EDF recordings, particularly SC4012E0 and SC4022E0. Visual inspection showed flattened EEG peaks, suggesting possible amplitude saturation or clipping. However, without confirmed acquisition limits, these events are classified as suspected rather than confirmed clipping.
+
+**Detection method.**
+
+P5 uses a deterministic, label-independent detector applied separately to each complete recording:
+
+1. Compute the minimum and maximum EEG amplitude within the recording.
+2. Identify sequences of at least three consecutive samples exactly equal to either extreme.
+3. Flag any 30-second epoch containing such a sequence.
+4. Preserve all original EEG, EOG and EMG signals, labels and epochs.
+
+At 100 Hz, three samples correspond to 30 ms. The upper and lower extrema are checked separately to avoid combining opposite-amplitude samples into a single plateau.
+
+The detector stores the flagged epoch indices and detection parameters in the recording metadata. A separate `clipping_qc.json` file provides the recording-level quality-control report.
+
+**Quality-control results.**
+
+| Recording | Flagged epochs | Total epochs | Flagged (%) |
+|---|---:|---:|---:|
+| SC4001E0 | 2 | 2,650 | 0.075 |
+| SC4002E0 | 0 | 2,829 | 0.000 |
+| SC4011E0 | 3 | 2,802 | 0.107 |
+| SC4012E0 | 29 | 2,848 | 1.018 |
+| SC4021E0 | 0 | 2,804 | 0.000 |
+| SC4022E0 | 23 | 2,755 | 0.835 |
+| **Total** | **57** | **16,688** | **0.342** |
+
+The longest observed extreme-value plateaus were 340 ms in SC4012E0 and 420 ms in SC4022E0. Most flagged epochs were concentrated in these two recordings.
+
+**Controlled comparison with P0.**
+
+Both experiments used the same six recordings, 11 supplied features, Random Forest classifier and three subject-wise LOSO folds.
+
+| Metric | P0 | P5 |
+|---|---:|---:|
+| Mean subject-wise Cohen's kappa | 0.704 | 0.704 |
+| SD of subject-wise kappa | 0.087 | 0.087 |
+| Subject-wise kappa range | 0.627–0.799 | 0.627–0.799 |
+| Accuracy | 0.849 | 0.849 |
+| Pooled Cohen's kappa | 0.710 | 0.710 |
+| Macro-F1 | 0.648 | 0.648 |
+| Balanced accuracy | 0.650 | 0.650 |
+
+A direct comparison of the P0 and P5 prediction arrays confirmed that all 16,688 predictions were identical, with zero differences.
+
+**Validation and leakage considerations.**
+
+The independent P5 validation script confirmed that EEG, EOG, EMG, labels and epoch alignment were preserved. The detector does not use sleep-stage labels, statistics pooled across subjects, or classifier predictions.
+
+Recording extrema are calculated independently for each complete night. This is a recording-local, label-free operation suitable for the retrospective full-recording analysis considered here. However, it uses the complete test recording's unlabelled signal distribution and is therefore not directly applicable to real-time epoch-by-epoch inference.
+
+The detector was designed after exploratory inspection of the current three-subject development cohort. Its parameters and performance should not be presented as independently validated on unseen subjects. The rule must be frozen before final evaluation, and any use of full-recording test statistics must remain consistent with the declared evaluation protocol.
+
+**Decision after evaluation.**
+
+Retain P5 as a signal-quality monitoring safeguard, not as a performance-enhancing denoising method. Flagging suspected clipping preserves the original physiological signals and provides traceable warnings without introducing potentially misleading interpolation or reconstruction.
+
+P5 does not improve classification performance because its flags are stored as metadata and are not used as classifier features. All epochs remain in the evaluation.
+
+The current detector identifies repeated extrema within individual epochs and does not yet merge plateaus crossing epoch boundaries. It also cannot independently confirm hardware saturation. These limitations should be considered before extending the method to additional recordings.
+
+**Reproducibility.**
+
+Command:
+`python scripts/run_baseline.py --preprocess denoise_clipping`
+
+Output directory:
+`results/real__P5_20261008T100803267247Z/`
+
+Artifacts:
+- `report.json`
+- `provenance.json`
+- `clipping_qc.json`
+
+Independent validation:
+`python scripts/test_p5_flags.py`
+
+P0/P5 prediction comparison:
+16,688 identical predictions; 0 differences.
+
+
+
 ## ⚠️ Before you fill in many rows — the garden of forking paths
 
 The harness guarantees that **no single run** leaks a subject. It cannot guarantee anything
@@ -341,6 +431,8 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | 2. Preprocessing — P1 band-pass filtering| EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
 | 2. Preprocessing — P2 wavelet denoising | Not retained; P1 remains the current preprocessing choice | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | No |
 | 2. Preprocessing — P3 broken-segment handling | Retained as a data-quality safeguard: exclude complete epochs with simultaneous near-flat EEG and EOG | Flag detected epochs without exclusion; no broken-segment handling | QC identified a sustained simultaneous EEG/EOG near-flat event in SC4012E0; the fixed label-independent rule excluded only the three fully affected epochs (2845–2847). Although mean subject kappa decreased from 0.704 to 0.694 vs P0, the rule was retained because objectively broken epochs should not be treated as valid physiological signal and the same predefined rule can handle similar dropout in additional recordings. | 2d | No — retained for data quality, not classification improvement |
+| 2. Preprocessing — P5 clipping QC | Retained as a quality-control safeguard: flag suspected EEG clipping without signal modification or epoch exclusion | Exclude flagged epochs; interpolate saturated samples; apply generic denoising; ignore suspected clipping | QC found 57/16,688 epochs with repeated recording-specific EEG extrema. P5 preserved all original data and produced exactly the same 16,688 predictions as P0. Flagging was preferred because the lost signal cannot be reliably reconstructed and exclusion of entire 30-second epochs was not justified by the observed short plateaus. | 2e | No — retained for signal-quality documentation, not performance improvement |
+
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
@@ -370,6 +462,8 @@ between iterations. Record what actually happened.
 |---|---|---|---|
 | 1 | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix |  |
 | 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing, P2 EEG wavelet denoising and P3 broken-segment detection/exclusion; performed short-window and continuous-duration QC analysis of near-flat segments; ran controlled P0/P1, P0/P2 and P0/P3 LOSO comparisons; analysed subject-wise metrics, stage-wise performance and confusion matrices | |
+| 2e | Lili | Designed and implemented P5 suspected EEG clipping detection and recording-level quality flagging; analysed amplitude extrema and plateau durations across six recordings; validated preservation of all signals and labels; exported clipping QC results; performed LOSO evaluation and verified that all 16,688 P5 predictions were identical to P0; documented leakage considerations and limitations | |
+
 
 ## Final numbers (fill in once, at the end)
 
