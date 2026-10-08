@@ -1,6 +1,7 @@
 """Evaluate the supplied baseline on local EDFs, without downloading or tuning.
 
 Run: .venv/bin/python -B scripts/run_baseline.py --cache-dir sleep_edf_data
+Subset: .venv/bin/python -B scripts/run_baseline.py --n-subjects 3 --nights 1 2
 Outputs: a timestamped results directory with report.json and provenance.json.
 """
 from __future__ import annotations
@@ -12,6 +13,7 @@ from importlib.metadata import version
 import json
 from pathlib import Path
 import platform
+import re
 import subprocess
 
 import _bootstrap  # Make src/ importable when run directly.
@@ -45,22 +47,105 @@ def sha256(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+def subject_id(value):
+    subject = int(value)
+    if not 0 <= subject <= 82:
+        raise argparse.ArgumentTypeError("subject IDs must be between 0 and 82")
+    return subject
+
+
+def subject_count(value):
+    count = int(value)
+    if count < 2:
+        raise argparse.ArgumentTypeError("LOSO requires at least 2 subjects")
+    return count
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "sleep_edf_data")
     parser.add_argument("--output-dir", type=Path,
                         help="New output directory; existing directories are never overwritten.")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument(
+        "--n-subjects", type=subject_count, metavar="N",
+        help="Use the first N cached Sleep-Cassette subjects in ascending ID order (N >= 2).",
+    )
+    selection.add_argument(
+        "--subjects", type=subject_id, nargs="+", metavar="ID",
+        help="Use these Sleep-Cassette subject IDs, e.g. 0 1 2 (default: all cached subjects).",
+    )
+    parser.add_argument(
+        "--nights", type=int, nargs="+", choices=[1, 2],
+        help="Use these night indices, e.g. 1 or 1 2 (default: all available nights).",
+    )
     parser.add_argument(
         "--preprocess",
         choices=["none","bandpass", "wavelet","broken_segments"], 
         default="none",
         help="Preprocessing experiment: none=P0, bandpass=P1 EEG 0.5-40Hz, wavelet=P2 EEG wavelet denoising, broken_segments=P3 exclude objectively identified near-flat epochs (EEG+EOG).",
     )
+    return parser
+
+
+def select_psgs(psgs, *, subjects=None, n_subjects=None, nights=None):
+    """Select Sleep-Cassette files before loading, requiring requested pairs."""
+    psgs = sorted(psgs)
+    if subjects is None and n_subjects is None and nights is None:
+        return psgs
+
+    indexed = []
+    for psg in psgs:
+        match = re.fullmatch(r"SC4(\d{2})([12]).*-PSG\.edf", psg.name)
+        if match:
+            indexed.append((psg, int(match[1]), int(match[2])))
+    available = sorted({subject for _, subject, _ in indexed})
+    if not available:
+        raise ValueError("No Sleep-Cassette PSG files found for subject/night selection.")
+    if n_subjects is not None:
+        if n_subjects < 2:
+            raise ValueError("LOSO requires at least two different subjects.")
+        if n_subjects > len(available):
+            raise ValueError(
+                f"Requested {n_subjects} subjects, but only {len(available)} are cached."
+            )
+        requested = set(available[:n_subjects])
+    elif subjects is not None:
+        requested = set(subjects)
+        missing = sorted(requested - set(available))
+        if missing:
+            raise ValueError(f"Requested subject IDs are not cached: {missing}")
+    else:
+        requested = set(available)
+
+    if nights is not None:
+        pairs = {(subject, night) for _, subject, night in indexed}
+        missing = sorted((subject, night) for subject in requested for night in set(nights)
+                         if (subject, night) not in pairs)
+        if missing:
+            details = ", ".join(f"subject {subject}, night {night}" for subject, night in missing)
+            raise ValueError(f"Requested recordings are not cached: {details}")
+    selected = [psg for psg, subject, night in indexed
+                if subject in requested and (nights is None or night in nights)]
+    if len({psg.name[:5] for psg in selected}) < 2:
+        raise ValueError("LOSO requires at least two different subjects.")
+    return selected
+
+
+def main():
+    parser = build_parser()
     args = parser.parse_args()
     cache = args.cache_dir.resolve()
     psgs = sorted(cache.rglob("*-PSG.edf"))
     if not psgs:
         parser.error(f"No PSG EDF files found under {cache}")
+    try:
+        psgs = select_psgs(psgs, subjects=args.subjects, n_subjects=args.n_subjects,
+                          nights=args.nights)
+    except ValueError as error:
+        parser.error(str(error))
 
     # Match subject AND night, allowing the scorer suffix to differ (E0 vs EC/EH).
     input_files = []
@@ -87,7 +172,7 @@ def main():
            "select": "none"}
     track = SleepEDFTrack()
     print(f"Loading {len(psgs)} PSG/hypnogram pairs from {cache}", flush=True)
-    recs = track.load(str(cache))
+    recs = track.load(str(cache), psg_paths=psgs)
     loaded = {r.meta["record"] for r in recs}
     expected = {p.name.removesuffix("-PSG.edf") for p in psgs}
     if loaded != expected or len(recs) != len(psgs):
@@ -124,6 +209,8 @@ def main():
         "data_kind": "real Sleep-EDF, not synthetic", "started_utc": started.isoformat(),
         "finished_utc": datetime.now(timezone.utc).isoformat(),
         "cache_dir": str(cache), "files": manifest, "config": cfg,
+        "selection": {"subjects": args.subjects, "n_subjects": args.n_subjects,
+                      "nights": args.nights},
         "classifier": {"factory": "sleepedf.machine_learning.default_baseline", "seed": 0,
                        "n_estimators": 200, "imbalance": "balanced"},
         "cropping": "none", "epoch_seconds": 30,

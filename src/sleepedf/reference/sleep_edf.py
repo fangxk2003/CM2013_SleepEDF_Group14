@@ -1,5 +1,5 @@
 """
-tracks.sleep_edf — the REFERENCE capstone track (Sleep-EDF Expanded, PhysioNet).
+sleepedf.reference.sleep_edf — the REFERENCE capstone track (Sleep-EDF Expanded, PhysioNet).
 
 Real data: open, ODC-BY, direct download (no agreement). The `load()` path uses
 `mne` and runs in Colab; the `smoke()` path uses the synthetic sleep cohort so
@@ -252,16 +252,19 @@ class SleepEDFTrack(TrackAdapter):
             on_missing="warn", verbose="ERROR")
         return cache_dir
 
-    def load(self, cache_dir, fs_target=100.0, epoch_s=30.0):
+    def load(self, cache_dir, fs_target=100.0, epoch_s=30.0, *, psg_paths=None):
         """Read Sleep-EDF PSG + Hypnogram pairs into Recordings.
         Groups by SUBJECT (filename 'SC4ss*'-> subject 'SC4ss'), maps R&K->AASM,
-        merges S3+S4->N3, drops MOVEMENT/UNKNOWN epochs."""
+        merges S3+S4->N3, drops MOVEMENT/UNKNOWN epochs.
+        Optional psg_paths restricts reading to those PSGs instead of scanning
+        the cache; epoch construction and subject grouping are unchanged."""
         import glob, os
         import mne
         recs = []
         # recursive: finds EDFs whether they sit in cache_dir itself or in mne's
         # `physionet-sleep-data/` subfolder.
-        psgs = sorted(glob.glob(os.path.join(cache_dir, "**", "*PSG.edf"), recursive=True))
+        psgs = (sorted(glob.glob(os.path.join(cache_dir, "**", "*PSG.edf"), recursive=True))
+                if psg_paths is None else sorted(os.fspath(path) for path in psg_paths))
         for psg in psgs:
             hyp = psg.replace("-PSG.edf", "-Hypnogram.edf")
             if not os.path.exists(hyp):

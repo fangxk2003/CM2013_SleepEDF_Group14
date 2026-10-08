@@ -18,7 +18,7 @@ they behave differently on EEG vs ECG vs IMU vs EMG vs CTG.
 | **2. Refresh + literature review** | Skim the **book sections** that cover each method (a refresher — you already learned them), then do a short (~5–8 source) **literature review** of the *application* to **motivate** your design. This is course outcome **L5** and is graded. | **`BACKGROUND_MAP.md`** |
 | **3. Run the baseline** | Open the track's notebook. It runs on **synthetic data offline** by default; set `USE_REAL = True` in **Colab** for the real dataset. Read the **honest metric panel** (κ / macro-F1 / confusion), not accuracy. | `notebooks/track_<name>.ipynb` |
 | **4. Improve the baseline** | Do **real DSP** — better preprocessing and **feature construction** (the point of the course), then a better model. Validate **inside the folds**, keep the **declared split unit**. Log each iteration as you go. | the adapter's `preprocess()` and `extract_features()` are where you work; `results_log_TEMPLATE.md` is where you log it |
-| **5. Report + submit** | Write up your design (justified, read against the **yardstick**), submit `predictions.csv` for hold-out evaluation, and take a slot in the **cross-track showcase**. | `HOLDOUT_EVALUATION.md`, `CAPSTONE_REPORT_RUBRIC.md`, `report.py` |
+| **5. Report + submit** | Write up your design (justified, read against the **yardstick**), submit `predictions.csv` for hold-out evaluation, and take a slot in the **cross-track showcase**. | `HOLDOUT_EVALUATION.md`, `CAPSTONE_REPORT_RUBRIC.md`, `sleepedf.reference.report` |
 
 ## The seven modules (this is what "pipeline integrity" means)
 
@@ -41,11 +41,11 @@ stage, so any stage can be swapped, tested, or rewritten without touching the ot
 | 4 | feature selection | `select_features(X, y, cfg)` | fit **inside** every fold; pass-through, ANOVA, mutual-info and tree-importance options ship with it |
 | 5 | classification | `baseline()` or your own estimator | |
 | 6 | inference | `infer(model, rec, cfg)` | **frozen** — applies a fitted pipeline, fits nothing |
-| 7 | reporting | `report(rep)` → `report.py` | confusion matrix first, metric **with its spread**, hypnogram for staging tracks |
+| 7 | reporting | `report(rep)` → `sleepedf.reference.report` | confusion matrix first, metric **with its spread**, hypnogram for staging tracks |
 
 Defaults are *starting points, not recommendations*: pass-through selection and identity
 preprocessing exist so the baseline runs on day one. The alternatives and their trade-offs are
-documented on each stage (`adapter.py`), and choosing among them — and writing down why — is the
+documented on each stage (`sleepedf.reference.adapter`), and choosing among them — and writing down why — is the
 assessed part. The book's k-NN → SVM → random-forest → tuned-RF ladder is likewise an *illustrative*
 history (its numbers are explicitly simulated), not a route you must walk: a team that keeps one
 learner and spends every iteration on features has an equally defensible story, provided each rung is

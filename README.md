@@ -33,9 +33,10 @@ uv.lock                   # Exact dependency versions shared by the team
 .python-version           # Shared Python version (3.13.3)
 ```
 
-`adapter.py`, `sleep_edf.py`, and `run_baseline.py` at the root are small
-compatibility entry points. Existing baseline imports and the old baseline
-command still work. New code should use `sleepedf` and the stage packages.
+Import the project track with `from sleepedf import SleepEDFTrack` and run the
+baseline through `scripts/run_baseline.py`. Shared adapter types and helpers
+live in `sleepedf.reference.adapter`; import reporting helpers with
+`from sleepedf.reference import report as R`.
 The supplied reference preprocessing recipes remain available through
 `sleepedf.reference.sleep_edf.SleepEDFTrack`; the project track deliberately
 exposes P1–P5 as **unimplemented experiments**, not completed preprocessing.
@@ -81,7 +82,13 @@ uv run --locked python -B -m unittest discover -s tests -v
 # Evaluate every PSG/hypnogram pair already in the local cache
 uv run --locked python -B scripts/run_baseline.py --cache-dir sleep_edf_data
 
-# Optional: download the original subjects 0, 1, 2 (first night)
+# Evaluate the first 3 cached subjects, both nights (6 recordings)
+uv run --locked python -B scripts/run_baseline.py --n-subjects 3 --nights 1 2
+
+# Choose specific subject IDs and only their first night
+uv run --locked python -B scripts/run_baseline.py --subjects 0 1 2 --nights 1
+
+# Optional: download the original subjects 0, 1, 2 (both nights)
 uv run --locked python -B scripts/download.py
 
 # Plot synthetic data, or a selected real epoch
@@ -89,14 +96,23 @@ uv run --locked python -B scripts/visualisation.py
 uv run --locked python -B scripts/visualisation.py --cache-dir sleep_edf_data --record 0 --epoch 10
 ```
 
-Baseline evaluation checks that each PSG has one matching hypnogram. It performs
-no downloads, optional preprocessing, cropping, feature selection or tuning.
-Each run creates `results/real_baseline_<UTC timestamp>/` containing:
+Omitting subject/night options evaluates all cached recordings. `--n-subjects N`
+chooses the lowest N cached Sleep-Cassette subject IDs; `--subjects` chooses
+explicit IDs instead. `--nights 1`, `--nights 2`, or `--nights 1 2` selects nights
+per subject. Requested subjects and explicitly requested subject/night pairs must
+be cached, and LOSO requires at least two subjects. Selection happens before EDF
+loading; only selected recordings are loaded, hashed, and evaluated.
+
+Baseline evaluation checks that each selected PSG has one matching hypnogram.
+By default it performs no downloads, optional preprocessing, cropping, feature
+selection or tuning.
+Each run creates `results/real__P0_<UTC timestamp>/` containing:
 
 - `report.json`: pooled metrics, confusion matrix, per-subject/fold metrics,
   spread, and aligned out-of-fold predictions and labels.
-- `provenance.json`: EDF filenames/hashes, recordings, settings, feature names,
-  package versions, source hashes (including the new modules), and Git state.
+- `provenance.json`: requested selection, EDF filenames/hashes, recordings,
+  settings, feature names, package versions, source hashes (including the new
+  modules), and Git state.
 
 Use `--output-dir <new-directory>` to choose another location. Existing output
 directories are never overwritten. These are evaluation reports, not a saved
@@ -112,8 +128,8 @@ and lockfile. Run the smoke check and regression tests, review the version
 changes, and commit both files together. Avoid individual `pip install` changes
 in the shared project environment, since they bypass the lock.
 
-The supplied reference notebook retains its original course bootstrap, which
-can clone the upstream course repository. For team experiments, import
+The supplied reference notebook uses the installed `sleepedf.reference` package
+and this repository's project kernel. For team experiments, import
 `SleepEDFTrack` from `sleepedf` using the project kernel so runs use this team's
 code and locked dependencies.
 

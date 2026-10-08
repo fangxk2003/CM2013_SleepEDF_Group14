@@ -14,6 +14,7 @@ from sleepedf.machine_learning import default_baseline, evaluate_loso
 from sleepedf.preprocessing import (
     BrokenSegmentHandling, SubjectRecordingNormalisation, make_preprocessor,
 )
+from sleepedf.reference import report as reference_report
 from sleepedf.reference.sleep_edf import SleepEDFTrack as ReferenceSleepEDFTrack
 
 
@@ -39,6 +40,12 @@ class PipelineTests(unittest.TestCase):
         np.testing.assert_array_equal(actual["y_pred"], expected["y_pred"])
         self.assertEqual(len(actual["per_fold"]), 3)
         self.assertEqual(np.asarray(actual["confusion"]).sum(), len(y))
+        panel = self.track.report(actual, show=False)
+        for metric in ("cohens_kappa", "macro_f1", "balanced_accuracy", "accuracy"):
+            self.assertEqual(round(panel["pooled"][metric], 3), actual[metric])
+        self.assertEqual(panel["confusion_md"], reference_report.confusion_table(
+            actual["y_true"], actual["y_pred"], labels=actual["labels"]))
+        self.assertEqual(panel["spread_unit"], "subject")
         model = default_baseline()
         self.assertEqual(model.named_steps["clf"].n_estimators, 200)
         self.assertEqual(model.named_steps["clf"].class_weight, "balanced")

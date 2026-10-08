@@ -8,6 +8,12 @@ behave differently on EEG vs ECG vs IMU vs EMG.
 > refresh + literature review via [`BACKGROUND_MAP.md`](BACKGROUND_MAP.md) → run the baseline → improve
 > it honestly → report + submit). This README is the *architecture* view for instructors/builders.
 
+This handout retains the course's cross-track context. In this Sleep-EDF team
+repository, use `from sleepedf import SleepEDFTrack` for the project pipeline,
+`from sleepedf.reference.sleep_edf import SleepEDFTrack` for the supplied recipes,
+and `scripts/run_baseline.py` for baseline evaluation. Other track modules and
+course-wide tooling listed below belong to the original course repository.
+
 ## The two-layer rule
 - **Synthetic** data (`src/bsp/biosignals.py`, `sleep_pipeline.py`) is the **teaching / debug /
   CI** layer used by the 16 chapter notebooks. It never goes away.
@@ -16,7 +22,7 @@ behave differently on EEG vs ECG vs IMU vs EMG.
 
 ## What every track ships (the handover)
 1. A **supplied baseline model** — students *improve* it, never start from a blank page
-   (`adapter.default_baseline`).
+   (`sleepedf.reference.adapter.default_baseline`).
 2. A **dataset card** — license, citation, task, labels, **split unit**, runtime, default metric,
    known pitfalls (auto-rendered from metadata by `TrackAdapter.dataset_card()`; see `*_card.md`).
 3. A **smoke-test subset** — a synthetic `smoke()` path so CI / offline / Colab-sanity runs green.
@@ -29,7 +35,7 @@ behave differently on EEG vs ECG vs IMU vs EMG.
    or why it was kept anyway · commit) that Chapter 16 §16.3 makes part of "done".
 
 ## Files
-- `adapter.py` — the `TrackAdapter` contract + `TrackMeta` (a dataset card in code) + the book's
+- `src/sleepedf/reference/adapter.py` — the `TrackAdapter` contract + `TrackMeta` (a dataset card in code) + the book's
   **seven separable stages** (`load`/`smoke` → `preprocess` → `extract_features` → `select_features`
   → `baseline` → `infer` → `report`, §16.2 / rubric Criterion 1) + the shared, never-overridden
   `evaluate()` (leave-one-group-out for few groups, 5-fold GroupKFold for many, leakage guard,
@@ -46,12 +52,12 @@ behave differently on EEG vs ECG vs IMU vs EMG.
   first-class. `train_baseline()` records the resolved cfg on the returned `FittedModel`, and
   `infer()` / `write_submission()` reuse it, so a model can never be scored on features built by a
   different pipeline than the one it was validated under.
-- `report.py` — **module 7**: `summarize_results()` / `summarize_report()` (confusion matrix first,
+- `src/sleepedf/reference/report.py` — **module 7**: `summarize_results()` / `summarize_report()` (confusion matrix first,
   primary metric with spread, macro-F1, balanced accuracy), `plot_confusion()`, `plot_hypnogram()`
   (predicted vs. reference stage sequence, disagreements marked — sleep and any sequence-labelled
   track), and `stage_summary()` / `compare_stage_summaries()` for the clinical night-level numbers
   (TST, sleep efficiency, WASO, SOL, REM latency).
-- `sleep_edf.py` — **reference track** (Sleep-EDF Expanded). Real `mne` loader (Colab) +
+- `src/sleepedf/reference/sleep_edf.py` — **reference track** (Sleep-EDF Expanded). Real `mne` loader (Colab) +
   synthetic smoke (offline). R&K→AASM (S3+S4→N3), drop MOVEMENT/UNKNOWN, split by **subject**.
 - `ecg_cinc2017.py` — **second built track** (PhysioNet/CinC-2017 single-lead ECG). Real `wfdb`
   loader (Colab) + synthetic smoke. 4-class rhythm N/A/O/~; split by **record**; QRS/HRV/SQI
@@ -99,12 +105,12 @@ re-verified on every CI run. Two artifacts make that layer auditable:
   guiding questions. This is what motivates the design (course outcome L5).
 
 ## Add a new track (the whole job)
-1. Copy `sleep_edf.py` → `mytrack.py`; fill in `TrackMeta`.
+1. Copy `src/sleepedf/reference/sleep_edf.py` → `src/sleepedf/reference/mytrack.py`; fill in `TrackMeta`.
 2. Implement `smoke()` (synthetic, from `bsp.biosignals`), `extract_features()` (the DSP), optionally
    `preprocess()`, and `download()/load()` (Colab real data). Inherit `baseline()`, `select_features()`,
    `infer()`, `report()` and the shared `evaluate()`. (The pre-refactor single `features(rec)` method
    still works — the base class detects the override and warns — but new tracks should split it.)
-3. `python3 mytrack.py` prints the card and runs the offline smoke LOSO — that is the CI gate.
+3. `uv run --locked python -m sleepedf.reference.mytrack` prints the card and runs the offline smoke LOSO — that is the CI gate.
 4. Score it on `readiness_matrix_TEMPLATE.md`; write the human pitfalls into its `*_card.md`;
    hand students `TRACK_INSTRUCTIONS_TEMPLATE.md`.
 

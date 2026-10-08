@@ -1,5 +1,5 @@
 """
-tracks.adapter — the shared contract for every capstone track.
+sleepedf.reference.adapter — the shared contract for every capstone track.
 
 A "track" = a real public dataset + a small adapter. The adapter owns the
 DOMAIN-SPECIFIC work (download, load, preprocessing, feature construction — i.e.
@@ -1056,9 +1056,9 @@ def spectral_bandpower(x, fs, band, method="welch", **kw) -> float:
 
 
 def bio_ar_psd(a, sigma2, fs, nfft=1024):
-    """Thin lazy wrapper over the book's own `bsp.ar_psd(a, sigma2, fs)` helper
+    """Thin lazy wrapper over the book's own `bsp.biosignals.ar_psd(a, sigma2, fs)` helper
     (Appendix H / §7.7), imported on demand so this module loads without bsp."""
-    import biosignals as _bio
+    from bsp import biosignals as _bio
     return _bio.ar_psd(a, sigma2, fs, nfft=nfft)
 
 
@@ -1714,10 +1714,11 @@ class TrackAdapter:
     def report(self, rep: dict, show: bool = True, **kw) -> dict:
         """Turn an `evaluate()` result into the panel §16.8 says to lead with:
         confusion matrix first, then the primary metric WITH ITS SPREAD, then
-        macro-F1 / balanced accuracy. Thin wrapper over `report.summarize_results`
-        so every track reports the same way; see `report.py` for the pieces
+        macro-F1 / balanced accuracy. Thin wrapper over
+        `sleepedf.reference.report.summarize_results` so every track reports
+        the same way; see `sleepedf.reference.report` for the pieces
         (including `plot_hypnogram` for staging-style tracks)."""
-        from report import summarize_report
+        from .report import summarize_report
         return summarize_report(rep, show=show, **kw)
 
     # ---- shared discipline (never overridden) ----

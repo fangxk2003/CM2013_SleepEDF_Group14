@@ -5,7 +5,7 @@ and its notebooks share one uniform, colour-blind-safe visual grammar.
 
 Usage
 -----
-    import bookstyle as bs
+    from bsp import bookstyle as bs
     fig, ax = bs.newfig()
     ax.plot(t, x, color=bs.C['blue'])
 """

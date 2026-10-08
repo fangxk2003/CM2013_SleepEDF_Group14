@@ -1,5 +1,5 @@
 """
-tracks.report — module 7 of the seven-stage pipeline: **reporting**.
+sleepedf.reference.report — module 7 of the seven-stage pipeline: **reporting**.
 
 Chapter 16 §16.8 is blunt about the order: *lead with the confusion matrix and the
 primary metric, never bare accuracy*, then read the errors, then (for staging-style
@@ -7,7 +7,7 @@ tracks) show the whole-night picture. This module supplies that panel so nobody
 spends their last week re-inventing a step plot — the *reading* of it is still
 yours, and is what the rubric grades.
 
-    from report import summarize_results, plot_hypnogram
+    from sleepedf.reference.report import summarize_results, plot_hypnogram
 
     rep = track.evaluate(X, y, groups)      # or: track.run_smoke()
     track.report(rep)                       # -> summarize_report(rep) below
@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from adapter import metrics_for, metric_spread, spread_line, per_group_metrics  # noqa: F401
+from .adapter import metrics_for, metric_spread, spread_line, per_group_metrics  # noqa: F401
 from bsp import metrics as M
 
 #: A conventional AASM ordering for sleep hypnograms (deepest at the bottom).

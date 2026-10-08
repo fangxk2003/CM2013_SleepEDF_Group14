@@ -36,9 +36,9 @@ side by side (Criterion 8).
 
 ## How a group produces a submission
 ```python
-from ecg_cinc2017 import ECGCinC2017Track
-trk = ECGCinC2017Track()
-all_recs = trk.load("data")                                     # every labelled record (public dataset)
+from sleepedf import SleepEDFTrack
+trk = SleepEDFTrack()
+all_recs = trk.load("sleep_edf_data")                          # every labelled record (public dataset)
 train   = [r for r in all_recs if r.group not in trk.meta.holdout_ids]
 holdout = [r for r in all_recs if r.group in trk.meta.holdout_ids]   # predict blind on these
 
@@ -57,7 +57,7 @@ report = trk.score_submission("predictions.csv", holdout)   # scores the SUBMITT
 ```
 `score_submission()` reads the team's actual `predictions.csv` and aligns it to the withheld
 labels by `(record[, epoch])` — it does not retrain anything, so it is scoring exactly what the
-team produced. (`holdout_score()` also exists in `adapter.py`, but it *refits* `clf`/`cfg` from
+team produced. (`holdout_score()` also exists in `sleepedf.reference.adapter`, but it *refits* `clf`/`cfg` from
 scratch and — called with no arguments, as it is easy to do — silently scores the shipped
 default baseline instead of a team's work. Use `score_submission()` for grading; `holdout_score()`
 is a reproducibility check, not a submission scorer.)

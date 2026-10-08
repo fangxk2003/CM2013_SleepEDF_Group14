@@ -6,7 +6,7 @@
 
 Input/output: a `Recording` with channel arrays shaped `(n_epochs, n_samples)`, per-epoch labels, a subject `group`, sampling rate `fs`, and metadata. The baseline uses 30-second epochs at 100 Hz. `Preprocessor.transform(recording)` is the recording-level interface.
 
-`Recording` is provided in `adapter.py`
+`Recording` is provided in `sleepedf.reference.adapter`.
 
 | Plan | Class | Status and contract |
 | --- | --- | --- |

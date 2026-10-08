@@ -4,7 +4,7 @@ Each team is graded out of **30 points**, across **three instruments** — the *
 the written **report**, and the **presentation** (talk + Q&A). Every track uses the
 **same 9 criteria and the same point values**, so grading is consistent across tracks;
 only the two *domain-specific* criteria (7–8) are concretized per track, using each
-track's own `TrackMeta` (default metric, split unit, eval modes) from `adapter.py` —
+track's own `TrackMeta` (default metric, split unit, eval modes) from `sleepedf.reference.adapter` —
 never a criterion invented ad hoc per report. This is a **raw point score** — there is
 no letter-grade conversion; the 30-point total and its per-criterion breakdown *is* the
 grade record.

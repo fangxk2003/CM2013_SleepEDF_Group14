@@ -1,6 +1,11 @@
 # Track instructions — Sleep staging, Sleep-EDF
 
-*Attach the dataset card (`sleep_edf_card.md`). Adapter: `sleep_edf.py`. **Reference track.***
+*Attach the dataset card (`sleep_edf_card.md`). Adapter: `sleepedf.reference.sleep_edf`. **Reference track.***
+
+These recipes use the supplied reference track. With the project environment
+installed (`uv sync --locked`), import it with
+`from sleepedf.reference.sleep_edf import SleepEDFTrack`. Team experiments use
+`from sleepedf import SleepEDFTrack`; see the repository README for the baseline CLI.
 
 > **Before you build — background & literature review.** Refresh the methods and do a short literature
 > review of the application domain using **[`BACKGROUND_MAP.md`](BACKGROUND_MAP.md)** (the "Sleep
@@ -21,13 +26,13 @@ every 30-second epoch, producing a hypnogram.
 - Smoke subset: `SC4001, SC4011, SC4021`. Evaluation mode: **new-subject** (LOSO).
 
 ## 3. What you are given (do not rebuild these)
-- The modular pipeline + a working baseline (`tracks.adapter.default_baseline`).
-- The adapter (`sleep_edf.py`) with `smoke()`, an opt-in `preprocess()` (band-pass/notch — off by
+- The modular pipeline + a working baseline (`sleepedf.reference.adapter.default_baseline`).
+- The adapter (`sleepedf.reference.sleep_edf`) with `smoke()`, an opt-in `preprocess()` (band-pass/notch — off by
   default, yours to choose), `extract_features()` (band power + Hjorth + entropy + EOG/EMG), and a
   Colab `download()/load()` that does the R&K→AASM merge and drops Movement/Unknown.
 - The shared leakage-safe **evaluator** (`TrackAdapter.evaluate`, leave-one-subject-out).
 - The **seven pipeline stages**, separable on the adapter (rubric Criterion 1): `download`/`load`/`smoke` → `preprocess()` → `extract_features()` → `select_features()` → `baseline()` → `infer()` → `report()`. Selection is fit **inside** every CV fold; `infer()` is the frozen, no-refit path used for `predictions.csv`.
-- The **reporting module** (`report.py`): `summarize_results()` leads with the confusion matrix, then the primary metric **with its spread across subjects** — the shape §16.3 requires. `evaluate()` returns `per_group` / `per_fold` / `spread` / `summary` for exactly this.
+- The **reporting module** (`sleepedf.reference.report`): `summarize_results()` leads with the confusion matrix, then the primary metric **with its spread across subjects** — the shape §16.3 requires. `evaluate()` returns `per_group` / `per_fold` / `spread` / `summary` for exactly this.
 
 ## 4. What you must do (iterations)
 1. **Run the baseline** on the smoke subset, then real nights; report the honest panel (κ, macro-F1, confusion).
@@ -39,12 +44,12 @@ every 30-second epoch, producing a hypnogram.
 Each of those steps is a *menu*, not a march: the band you filter to, whether spindles come from an
 STFT or a wavelet, whether artifacts are rejected / interpolated / flagged, whether you select features
 at all — the scaffold ships options and their trade-offs (see `preprocess()` and `make_selector()` / `default_baseline()` in
-`adapter.py`), and the grade is on the quality of your reasoning, not on matching one blessed recipe.
+`sleepedf.reference.adapter`), and the grade is on the quality of your reasoning, not on matching one blessed recipe.
 
 ## 4b. Reporting (module 7) — what to show, and the code that draws it
 
 ```python
-import report as R                       # tracks/report.py
+from sleepedf.reference import report as R
 
 rep = track.evaluate(X, y, groups)
 track.report(rep)                        # confusion matrix first, then κ WITH its spread
@@ -62,7 +67,7 @@ R.compare_stage_summaries(y_true_night, y_pred_night) # TST, sleep efficiency, W
 
 ## 4c. The design-decision menus (stages 2-5) — what the scaffold offers, and the trade-off
 
-Everything here is a **menu, not a recipe**. `tracks/adapter.py` ships each option *with its
+Everything here is a **menu, not a recipe**. `sleepedf.reference.adapter` ships each option *with its
 trade-off* and no blessed answer; the rubric grades the reasoning (criteria 2 and 5), not the
 choice. The notebook's "Decision points on this track" section runs several of them side by side
 so you can watch the numbers move.

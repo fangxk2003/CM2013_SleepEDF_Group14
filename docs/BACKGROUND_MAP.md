@@ -40,7 +40,7 @@ one methods/benchmark paper), then branch out.
 
 ---
 
-## Sleep staging — `sleep_edf.py`
+## Sleep staging — `sleepedf.reference.sleep_edf`
 
 **Signal / task:** multi-channel PSG (EEG, EOG, EMG) → 5-class sleep stage per 30-s epoch.
 
