@@ -143,6 +143,39 @@ historical evidence. Rerun the smoke check and baseline after switching to the
 course environment, and log the new results with their seed, code revision and
 environment before comparing them with subsequent experiments.
 
+## Visualise saved results
+
+Create plots from the `report.json` and `provenance.json` pairs already saved
+under `results/`; no EDF loading or model training is needed:
+
+```bash
+# Compare every saved iteration
+uv run --locked python -B scripts/visualisation_results.py
+
+# Compare two selected saved iterations
+uv run --locked python -B scripts/visualisation_results.py results/real__P0_20261008T115921097052Z results/real__P1_20261008T120846779566Z
+
+# Read an explicit pair and choose the output directory
+uv run --locked python -B scripts/visualisation_results.py --report results/real__P1_20261008T120846779566Z/report.json --provenance results/real__P1_20261008T120846779566Z/provenance.json --output-dir results/plots
+```
+
+Open `results/visualisations/index.html` to browse the comparison and each run's
+dashboard: confusion percentages/counts, stage precision/recall/F1, true versus
+predicted class distribution, pooled metrics, and subject/fold variation.
+The index lists configuration, source and environment changes between iterations,
+preserves full provenance, and links to `summary.csv`. Figures are PNG by default;
+use `--format pdf` or `--format svg` for export, or `--show` to open figures.
+`--results-dir <directory>` chooses another results root. Outputs are regenerated
+on each invocation; use separate output directories to keep different selections.
+
+Iterations are ordered by their saved UTC start times. Cohort IDs distinguish
+input files, recordings, evaluated labels/groups/folds and epoch counts so runs
+using different populations are visible. Compare settings and source/package
+changes even within one cohort. Error bars are sample SD across finite group
+scores, not confidence intervals; undefined scores and SD with fewer than two
+finite groups are shown as N/A. Prediction arrays do not contain enough timing
+information to reconstruct whole-night recording timelines safely.
+
 ## Compare models
 
 `sleepedf.machine_learning` exposes `make_model(name, **kwargs)` and the named
