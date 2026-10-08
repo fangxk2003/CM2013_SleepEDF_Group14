@@ -75,11 +75,50 @@ Add alternative extractors in this package and connect them through the track's 
 
 ## 3. Machine learning
 
-`default_baseline()` returns a fresh supplied scikit-learn pipeline: `StandardScaler → RandomForestClassifier(n_estimators=200, class_weight="balanced", random_state=0)`. The factory delegates to the supplied implementation so its optional imbalance strategies remain available.
+`default_baseline()` returns a fresh supplied scikit-learn pipeline: `StandardScaler → RandomForestClassifier(n_estimators=200, class_weight="balanced", random_state=0)`. It remains the track's default. `make_random_forest()` delegates to that implementation so the same defaults and optional `imbalance=` strategies remain available.
 
-`evaluate_loso(track, X, y, groups, clf=None, cfg=None)` calls the suppliedsubject-separated evaluation harness and requests every subject fold. Existing selection, scaling and estimator fitting happen within training folds. Reports include pooled and per-subject metrics and out-of-fold predictions.
+The public registry `make_model(name, **kwargs)` accepts these model names:
 
-Add model factories in this package; pass a fresh estimator via `clf=` to compare models under the same split. Override `SleepEDFTrack.baseline()` if the project default later changes.
+| Name | Factory | Default behavior |
+| --- | --- | --- |
+| `random_forest` | `make_random_forest` | Supplied scaler + 200-tree random forest, balanced class weights, seed 0 |
+| `logistic_regression` | `make_logistic_regression` | Scaler + L2 logistic regression, balanced class weights; `C` controls regularization |
+| `rbf_svm` | `make_rbf_svm` | Scaler + RBF SVM, balanced class weights; accepts `C` and `gamma`, probability estimation disabled |
+| `xgboost` | `make_xgboost` | Optional boosted-tree classifier with training-fold class weighting and label encoding |
+
+XGBoost requires the `xgboost` extra (`uv sync --locked --extra xgboost`). Its
+`ClassWeightedXGBClassifier` wrapper is cloneable, uses `LabelEncoder` to convert
+stage strings into contiguous integer labels at fit time, and converts predictions
+back to the original labels. With `class_weight="balanced"`, it derives sample
+weights from the labels in that fit call. The wrapped XGBoost estimator exposes
+nested parameters for scikit-learn searches. Tree models require no additional
+feature scaling.
+
+`evaluate_loso(track, X, y, groups, clf=None, cfg=None)` calls the supplied
+subject-separated evaluation harness and requests every subject fold. Existing
+selection, scaling and estimator fitting happen within training folds. Reports
+include pooled and per-subject metrics and out-of-fold predictions.
+
+```python
+from sleepedf import SleepEDFTrack
+from sleepedf.machine_learning import evaluate_loso, make_model
+
+track = SleepEDFTrack()
+X, y, groups = track.build_dataset(track.smoke(n_subjects=3, n_epochs=40))
+report = evaluate_loso(
+    track, X, y, groups,
+    clf=make_model("logistic_regression", C=1.0, class_weight="balanced"),
+)
+```
+
+Pass a fresh estimator through `clf=` to compare models under the same split;
+`cfg["imbalance"]` only configures the supplied default, not a custom classifier.
+Use `imbalance=` for the random-forest factory and `class_weight=` for logistic
+regression, SVM and XGBoost. Tune only on training subjects, using inner group-wise
+validation when evaluating tuned models with outer LOSO. Preserve both nights of
+each subject in the same group. The current factories consume the existing
+per-epoch features; adding temporal context requires a separate dataset design
+that preserves recording boundaries and epoch positions.
 
 ## Verification
 
