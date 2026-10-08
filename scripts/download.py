@@ -18,8 +18,8 @@ def main():
                         default=Path(__file__).resolve().parents[1] / "sleep_edf_data")
     parser.add_argument("--subjects", type=subject_id, nargs="+", default=[0, 1, 2],
                         help="Sleep-Cassette subject IDs (default: 0 1 2)")
-    parser.add_argument("--nights", type=int, nargs="+", choices=[1, 2], default=[1],
-                        help="night indices (default: 1)")
+    parser.add_argument("--nights", type=int, nargs="+", choices=[1, 2], default=[1, 2],
+                        help="night indices (default: 1 2)")
     parser.add_argument("--base-url", help="optional Sleep-Cassette download URL")
     args = parser.parse_args()
     data_dir = args.cache_dir.resolve()
