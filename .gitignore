@@ -1,5 +1,7 @@
 # Downloaded signal recordings stay local; scripts and result summaries can be shared.
 /sleep_edf_data/
+# Regenerable dashboards from scripts/visualisation_results.py.
+/results/visualisations/
 .venv/
 __pycache__/
 *.py[cod]
