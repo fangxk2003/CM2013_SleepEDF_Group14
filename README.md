@@ -11,9 +11,9 @@ selection fitted separately inside each training fold.
 ```text
 src/
   sleepedf/
-    preprocessing/        # P0 implementation and P1–P5 experiment interfaces
+    preprocessing/        # P0–P3/P5 transforms and planned P4 interface
       base.py             # Recording transform contract and no-op baseline
-      experiments.py      # P1–P5 recording-level preprocessing placeholders
+      experiments.py      # Recording-level filters and quality-control transforms
     feature_extraction/
       baseline.py         # BaselineFeatureExtractor: 11 values per epoch
     machine_learning/
@@ -26,7 +26,8 @@ src/
     track.py              # Connects the stages; inherits loading/reporting
     reference/            # Supplied course adapter and Sleep-EDF track
   bsp/                    # Supplied numerical helpers and synthetic recordings
-scripts/                  # Baseline evaluation, download, visualisation, smoke test
+run_experiment.py         # Repository-root experiment entrypoint
+scripts/                  # Experiment/baseline evaluation, download, plots, smoke test
 tests/                   # Offline baseline-regression checks
 docs/                    # Dataset card, course instructions, background, architecture
 results/                 # Saved reports and provenance
@@ -43,9 +44,10 @@ Import the project track with `from sleepedf import SleepEDFTrack` and run the
 baseline through `scripts/run_baseline.py`. Shared adapter types and helpers
 live in `sleepedf.reference.adapter`; import reporting helpers with
 `from sleepedf.reference import report as R`.
-The supplied reference preprocessing recipes remain available through
-`sleepedf.reference.sleep_edf.SleepEDFTrack`; the project track deliberately
-exposes P1–P5 as **unimplemented experiments**, not completed preprocessing.
+The project track provides EEG bandpass and wavelet filtering, near-flat epoch
+exclusion, and suspected-clipping flags. P4 signal normalisation remains a
+planned experiment. The supplied reference preprocessing recipes also remain
+available through `sleepedf.reference.sleep_edf.SleepEDFTrack`.
 
 ## Run
 
@@ -176,38 +178,35 @@ scores, not confidence intervals; undefined scores and SD with fewer than two
 finite groups are shown as N/A. Prediction arrays do not contain enough timing
 information to reconstruct whole-night recording timelines safely.
 
-## Compare models
+## Run experiments
 
-`sleepedf.machine_learning` exposes `make_model(name, **kwargs)` and the named
-factories `make_random_forest`, `make_logistic_regression`, `make_rbf_svm`, and
-`make_xgboost`. The track and baseline script still use the supplied random forest
-by default. Compare classifiers by passing a fresh estimator through `clf=`:
+From the repository root, choose preprocessing and a model for cached real EDFs:
 
-```python
-from sleepedf import SleepEDFTrack
-from sleepedf.machine_learning import evaluate_loso, make_model
+```bash
+# EEG bandpass + RBF-SVM, first 3 cached subjects
+.venv/bin/python run_experiment.py --preprocess bandpass --model rbf_svm --n-subjects 3
 
-track = SleepEDFTrack()
-recordings = track.smoke(n_subjects=3, n_epochs=40, seed=0)
-X, y, groups = track.build_dataset(recordings)
+# Wavelet + logistic regression, selected subjects and first nights
+.venv/bin/python run_experiment.py --preprocess wavelet --model logistic_regression --subjects 0 1 2 --nights 1 --seed 0
 
-for name in ("random_forest", "logistic_regression", "rbf_svm"):
-    report = evaluate_loso(track, X, y, groups, clf=make_model(name))
-    print(name, report["summary"], "macro-F1:", report["macro_f1"])
+# Defaults: no preprocessing, random forest, all cached recordings
+.venv/bin/python run_experiment.py --cache-dir sleep_edf_data
 ```
 
-The synthetic example checks functionality; it does not establish performance on
-Sleep-EDF. For a real comparison, build the dataset once from the same selected
-recordings and use identical preprocessing, features and subject folds for every
-model. Both nights of a subject share a group. Scaling and feature selection are
-fitted within each training fold.
+Preprocessing choices are `none`, `bandpass`, `wavelet`, `broken_segments`, and
+`denoise_clipping`. `broken_segments` excludes detected near-flat epochs;
+`denoise_clipping` only adds suspected-clipping flags and leaves signals unchanged.
+Model choices are `random_forest`, `logistic_regression`, `rbf_svm`, and `xgboost`.
+The seed defaults to 0. The existing `--subjects`/`--n-subjects`, `--nights`,
+`--cache-dir`, and `--output-dir` selection options are available.
 
-Logistic regression uses L2 regularization and RBF-SVM uses an RBF kernel. Both
-include `StandardScaler` and default to `class_weight="balanced"`. Tune `C` for
-logistic regression and `C`/`gamma` for SVM through factory arguments. SVM defaults
-to `probability=False`. Random forest retains the supplied defaults and
-`imbalance=` options; the other factories configure weighting with `class_weight=`.
-`cfg["imbalance"]` does not change a classifier passed through `clf=`.
+The experiment runner loads real cached EDFs and evaluates them with the existing
+subject-wise LOSO harness. It performs no downloads or hyperparameter tuning.
+Each run writes `report.json` and `provenance.json` to a new directory such as
+`results/real__P1_rbf_svm_<UTC timestamp>/`. Provenance includes the selected model,
+factory settings, preprocessing, inputs, source hashes, seed and package versions.
+`--output-dir` chooses another new directory. The existing baseline script keeps
+its behavior and output naming.
 
 XGBoost is an optional dependency. Install the extra with:
 
@@ -217,17 +216,10 @@ uv sync --locked --extra xgboost
 pip install -e '.[xgboost]'
 ```
 
-Then include `"xgboost"` in the loop. Its classifier encodes stage labels and
-computes balanced sample weights from each training fold. It supports scikit-learn
-cloning and exposes the underlying XGBoost estimator's nested parameters for
-tuning.
-
-Choose hyperparameters using subject-aware validation inside the development
-training data. If reporting tuned LOSO scores, use inner subject-wise validation
-inside each outer training fold; do not choose settings from the outer held-out
-subject. Report Cohen's kappa and its subject spread, macro-F1, per-stage scores,
-and confusion matrices. These factories use each epoch's existing features;
-temporal context is a separate experiment.
+Then run with `--model xgboost`. For Python experiments, use
+`sleepedf.machine_learning.make_model(name, **kwargs)` and pass it through `clf=`
+to `evaluate_loso`; see [the factory API and tuning guidance](docs/ARCHITECTURE.md).
+Compare the same subjects and nights under identical features and LOSO folds.
 
 ## Development
 

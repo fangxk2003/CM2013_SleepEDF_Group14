@@ -135,9 +135,13 @@ def select_psgs(psgs, *, subjects=None, n_subjects=None, nights=None):
     return selected
 
 
-def main():
-    parser = build_parser()
-    args = parser.parse_args()
+def run(args, parser, *, clf=None, classifier_info=None, seed=0,
+        output_tag=None, extra_packages=()):
+    """Run the shared EDF selection, evaluation and reporting workflow.
+
+    Experiment entry points can supply a fresh classifier and its provenance.
+    The baseline entry point keeps its supplied model and output names.
+    """
     cache = args.cache_dir.resolve()
     psgs = sorted(cache.rglob("*-PSG.edf"))
     if not psgs:
@@ -165,12 +169,13 @@ def main():
         "broken_segments": "P3",
         "denoise_clipping": "P5",
     }[args.preprocess]
+    tag = f"_{output_tag}" if output_tag else ""
     output = (args.output_dir or ROOT / "results" /
-              f"real__{experiment}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
+              f"real__{experiment}{tag}_{started.strftime('%Y%m%dT%H%M%S%fZ')}").resolve()
     if output.exists():
         parser.error(f"Output directory already exists: {output}")
 
-    cfg = {"seed": 0, "preprocess": args.preprocess, "spectral_method": "welch",
+    cfg = {"seed": seed, "preprocess": args.preprocess, "spectral_method": "welch",
            "select": "none"}
     track = SleepEDFTrack()
     print(f"Loading {len(psgs)} PSG/hypnogram pairs from {cache}", flush=True)
@@ -253,8 +258,16 @@ def main():
     X, y, groups = track.build_dataset(recs, cfg)
     if X.shape != (len(y), 11) or len(groups) != len(y) or not np.isfinite(X).all():
         raise ValueError("Invalid feature shape, label alignment, or non-finite features.")
+    if len(y) == 0:
+        raise ValueError("No labelled epochs remain after preprocessing.")
+    retained_subjects = set(np.asarray(groups).tolist())
+    missing_subjects = sorted(set(subjects) - retained_subjects)
+    if missing_subjects:
+        raise ValueError(
+            f"Preprocessing removed every epoch for subjects: {missing_subjects}.")
     print(f"Evaluating {len(y)} epochs with {len(subjects)} LOSO folds...", flush=True)
-    clf = default_baseline(seed=0, n_estimators=200, imbalance="balanced")
+    if clf is None:
+        clf = default_baseline(seed=seed, n_estimators=200, imbalance="balanced")
     rep = evaluate_loso(track, X, y, groups, clf=clf, cfg=cfg)
     if len(rep["y_pred"]) != len(y) or np.asarray(rep["confusion"]).sum() != len(y):
         raise ValueError("Evaluation did not account for every epoch.")
@@ -267,8 +280,9 @@ def main():
         "cache_dir": str(cache), "files": manifest, "config": cfg,
         "selection": {"subjects": args.subjects, "n_subjects": args.n_subjects,
                       "nights": args.nights},
-        "classifier": {"factory": "sleepedf.machine_learning.default_baseline", "seed": 0,
-                       "n_estimators": 200, "imbalance": "balanced"},
+        "classifier": classifier_info if classifier_info is not None else {
+            "factory": "sleepedf.machine_learning.default_baseline", "seed": seed,
+            "n_estimators": 200, "imbalance": "balanced"},
         "cropping": "none", "epoch_seconds": 30,
         "fs": 100, "feature_shape": X.shape, "feature_names": track.feature_names(),
         "subjects": subjects,
@@ -276,11 +290,14 @@ def main():
                         "epochs": len(r.labels)} for r in recs],
         "class_counts": {str(k): int(v) for k, v in zip(*np.unique(y, return_counts=True))},
         "python": platform.python_version(),
-        "packages": {p: version(p) for p in ("numpy", "scipy", "scikit-learn", "mne")},
+        "packages": {p: version(p) for p in dict.fromkeys(
+            ("numpy", "scipy", "scikit-learn", "mne") + tuple(extra_packages) +
+            (("PyWavelets",) if args.preprocess == "wavelet" else ()))},
         "source_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "working_tree_status": subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True),
         "source_sha256": {str(p.relative_to(ROOT)): sha256(p) for p in sorted(
-            list((ROOT / "src").rglob("*.py")) + list((ROOT / "scripts").glob("*.py")))},
+            list((ROOT / "src").rglob("*.py")) + list((ROOT / "scripts").glob("*.py")) +
+            list(ROOT.glob("*.py")))},
     }
     output.mkdir(parents=True, exist_ok=False)
     for name, value in (("report.json", rep), ("provenance.json", provenance)):
@@ -301,6 +318,12 @@ def main():
     print("Confusion matrix (rows=true, columns=predicted):", rep["labels"])
     print(np.asarray(rep["confusion"]))
     print(f"Saved results to {output}")
+    return output
+
+
+def main():
+    parser = build_parser()
+    return run(parser.parse_args(), parser)
 
 
 if __name__ == "__main__":

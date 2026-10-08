@@ -11,42 +11,24 @@ Input/output: a `Recording` with channel arrays shaped `(n_epochs, n_samples)`, 
 | Plan | Class | Status and contract |
 | --- | --- | --- |
 | P0 | `NoPreprocessing` | Implemented identity; the default |
-| P1 | `EEGBandpass` | Stub; EEG 0.5–40 Hz, default filter order 4 |
-| P2 | `WaveletDenoising` | Stub; db4, optional level and threshold mode |
-| P3 | `BrokenSegmentHandling` | Stubs for `detect()` and `transform()`; flag/exclude broken epochs |
+| P1 | `EEGBandpass` | Implemented EEG 0.5–40 Hz filter, default order 4; EOG/EMG unchanged |
+| P2 | `WaveletDenoising` | Implemented EEG db4 denoising, optional level and threshold mode |
+| P3 | `BrokenSegmentHandling` | Implemented near-flat EEG/EOG detection; flag or exclude epochs, with alignment preserved |
 | P4 | `SubjectRecordingNormalisation` | Recording-level `transform()` stub; normalise signals before feature extraction |
-| P5 | `TargetedDenoising` | Stub; identify impulse, baseline, mains or broadband corruption and record evidence |
+| P5 | `TargetedDenoising` | Implemented suspected EEG clipping flags; signals unchanged, other noise remedies remain planned |
 
-`make_preprocessor.py`
-
-```python
-def make_preprocessor(name="none") -> Preprocessor:
-    """Select a recording transform. Planned experiments fail when called."""
-    choices = {
-        "none": NoPreprocessing, "p0": NoPreprocessing,
-        "bandpass": EEGBandpass, "p1": EEGBandpass,
-        "wavelet": WaveletDenoising, "p2": WaveletDenoising,
-        "broken_segments": BrokenSegmentHandling, "p3": BrokenSegmentHandling,
-        "normalisation": SubjectRecordingNormalisation, "p4": SubjectRecordingNormalisation,
-        "denoise": TargetedDenoising, "p5": TargetedDenoising,
-    }
-    key = str(name or "none").lower()
-    if key not in choices:
-        raise ValueError(f"Unknown preprocessing experiment: {name!r}")
-    return choices[key]()
-```
+`make_preprocessor(name="none")` selects `none`, `bandpass`, `wavelet`,
+`broken_segments`, `normalisation`, or `denoise_clipping` (aliases `p0`–`p5`).
+The factory selects `action="exclude"` for P3; construct `BrokenSegmentHandling`
+directly to flag without excluding. P4 raises `NotImplementedError` when used.
 
 Example
 
 ```python
 from sleepedf import SleepEDFTrack
-from sleepedf.preprocessing import EEGBandpass
-
-track = SleepEDFTrack()  # P0, runnable
+track = SleepEDFTrack()
 recordings = track.smoke()
-X, y, groups = track.build_dataset(recordings)
-
-planned = EEGBandpass(low_hz=0.5, high_hz=40.0)
+X, y, groups = track.build_dataset(recordings, cfg={"preprocess": "bandpass"})
 ```
 
 ## 2. Feature extraction
@@ -119,6 +101,29 @@ validation when evaluating tuned models with outer LOSO. Preserve both nights of
 each subject in the same group. The current factories consume the existing
 per-epoch features; adding temporal context requires a separate dataset design
 that preserves recording boundaries and epoch positions.
+
+## Experiment entrypoint
+
+`run_experiment.py` in the repository root delegates to
+`scripts/run_experiment.py`. It selects a preprocessing transform and model,
+then reuses real EDF loading, the existing 11 features, LOSO evaluation and
+report/provenance saving:
+
+```bash
+.venv/bin/python run_experiment.py --preprocess bandpass --model rbf_svm --n-subjects 3
+```
+
+Preprocessing choices are `none`, `bandpass`, `wavelet`, `broken_segments`, and
+`denoise_clipping`; model choices are the four registry names above. Defaults are
+`none`, `random_forest`, and seed 0. The runner supports `--seed`,
+`--subjects`/`--n-subjects`, `--nights`, `--cache-dir`, and `--output-dir`.
+It uses cached real EDFs and performs no downloads or tuning. P5 is flag-only.
+
+Outputs are `report.json` and `provenance.json` in a unique directory such as
+`results/real__P1_rbf_svm_<UTC timestamp>/`, with the model included in the name.
+Provenance records the selected model and factory settings alongside the seed,
+preprocessing, EDF hashes, feature names, source hashes and environment versions.
+`scripts/run_baseline.py` retains its existing behavior.
 
 ## Verification
 
