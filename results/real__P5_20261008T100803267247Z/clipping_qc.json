@@ -1,0 +1,128 @@
+{
+  "method": "recording_extrema_plateau",
+  "channel": "eeg",
+  "action": "flag_only",
+  "confirmed_clipping": false,
+  "min_plateau_samples": 3,
+  "threshold_duration_ms": 30.0,
+  "extrema_scope": "individual_full_recording",
+  "recordings": [
+    {
+      "record": "SC4001E0",
+      "subject": "SC400",
+      "n_epochs": 2650,
+      "n_flagged": 2,
+      "flagged_epoch_indices": [
+        1731,
+        2298
+      ],
+      "lower_extreme_uv": -192.0,
+      "upper_extreme_uv": 170.61978021978018
+    },
+    {
+      "record": "SC4002E0",
+      "subject": "SC400",
+      "n_epochs": 2829,
+      "n_flagged": 0,
+      "flagged_epoch_indices": [],
+      "lower_extreme_uv": -208.0,
+      "upper_extreme_uv": 208.99999999999997
+    },
+    {
+      "record": "SC4011E0",
+      "subject": "SC401",
+      "n_epochs": 2802,
+      "n_flagged": 3,
+      "flagged_epoch_indices": [
+        7,
+        33,
+        139
+      ],
+      "lower_extreme_uv": -204.0,
+      "upper_extreme_uv": 204.00000000000003
+    },
+    {
+      "record": "SC4012E0",
+      "subject": "SC401",
+      "n_epochs": 2848,
+      "n_flagged": 29,
+      "flagged_epoch_indices": [
+        2447,
+        2477,
+        2562,
+        2616,
+        2667,
+        2675,
+        2687,
+        2716,
+        2732,
+        2737,
+        2747,
+        2751,
+        2754,
+        2757,
+        2762,
+        2763,
+        2768,
+        2769,
+        2774,
+        2783,
+        2784,
+        2785,
+        2787,
+        2794,
+        2798,
+        2812,
+        2815,
+        2832,
+        2843
+      ],
+      "lower_extreme_uv": -192.0,
+      "upper_extreme_uv": 189.0
+    },
+    {
+      "record": "SC4021E0",
+      "subject": "SC402",
+      "n_epochs": 2804,
+      "n_flagged": 0,
+      "flagged_epoch_indices": [],
+      "lower_extreme_uv": -184.47692307692307,
+      "upper_extreme_uv": 157.15384615384613
+    },
+    {
+      "record": "SC4022E0",
+      "subject": "SC402",
+      "n_epochs": 2755,
+      "n_flagged": 23,
+      "flagged_epoch_indices": [
+        19,
+        702,
+        1644,
+        1742,
+        1754,
+        1769,
+        1871,
+        1884,
+        2042,
+        2088,
+        2107,
+        2207,
+        2297,
+        2320,
+        2328,
+        2340,
+        2341,
+        2352,
+        2442,
+        2593,
+        2594,
+        2651,
+        2665
+      ],
+      "lower_extreme_uv": -193.0,
+      "upper_extreme_uv": 189.99999999999997
+    }
+  ],
+  "total_epochs": 16688,
+  "total_flagged": 57
+}

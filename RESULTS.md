@@ -117,6 +117,8 @@ No signals or labels were modified, and no epochs were excluded. Classification 
 
 P5 is retained as a quality-control safeguard, not as a denoising method. Flagged epochs are not necessarily confirmed instances of hardware saturation.
 
+An additional exploratory investigation considered impulsive EEG disturbances and large baseline variations, using both EEG and EOG signals for morphological verification. Although several candidate events were identified, their interpretation remained ambiguous and no reliable criterion for automatic correction was established. Therefore, no further denoising transformation was added to P5, and the original signals were preserved.
+
 #### Comparison with earlier experiments
 
 The relative ranking of P1 and P2 differs from the experiments performed in the earlier environment.
@@ -237,7 +239,37 @@ Independent validation:
 P0/P5 prediction comparison:
 16,688 identical predictions; 0 differences.
 
+### P5 — Exploratory investigation of additional EEG noise
 
+**Motivation.**
+
+Following the suspected-clipping investigation, additional EEG signal-quality anomalies were explored to determine whether another objective preprocessing correction could be justified. The investigation focused on abrupt sample-to-sample EEG changes and large baseline variations within short windows.
+
+**Exploratory analysis.**
+
+Candidate events were identified using EEG amplitude changes and short-window baseline variations. The corresponding EEG and EOG signals were inspected together to assess event morphology and possible relationships between channels.
+
+Diagnostic plots were generated at both broad and narrow time scales. Candidate events were also grouped into episodes to avoid interpreting consecutive detections as independent disturbances.
+
+**Observations and limitations.**
+
+Several candidate events were identified, but visual inspection did not provide sufficient evidence to classify them consistently as acquisition artifacts rather than physiological activity or mixed EEG/EOG events.
+
+Large amplitude changes alone were not considered sufficient justification for automatic removal or correction. Likewise, baseline variations could not reliably be separated from physiological signal changes using the exploratory criteria.
+
+**Decision.**
+
+No additional denoising or artifact-correction method was introduced. The original EEG, EOG and EMG signals were preserved, and P5 remained limited to suspected-clipping detection and quality-control flagging.
+
+This decision avoids introducing potentially unjustified signal modifications. The exploratory detectors and visualisations are retained as diagnostic evidence rather than as validated preprocessing methods.
+
+**Diagnostic scripts and outputs.**
+
+- `scripts/diagnose_p5_other_noise.py`
+- `scripts/diagnose_p5_eeg_eog_events.py`
+- `scripts/plot_p5_noise_examples.py`
+- `scripts/plot_p5_event_morphology.py`
+- `results/p5_diagnostics/`
 
 ### P3 Broken-segment handling - Lili - 2026-10-06
 
@@ -546,9 +578,10 @@ add rows as the pipeline grows, and note the alternative you rejected.
 |---|---|---|---|---|---|
 | 1. Data loading | *e.g.* 8 subjects, both nights | more subjects, one night each | subject-level split needs both nights inside one group | 1 | — |
 | 2. Preprocessing — P1 band-pass filtering| EEG 0.5–40 Hz zero-phase Butterworth band-pass | No preprocessing; 50 Hz notch; wavelet denoising | P1 improved mean subject kappa from 0.704 to 0.737 and macro-F1 from 0.648 to 0.683 without increasing between-subject variability; no 50 Hz notch was justified by QC | 2b | No — current choice, subject to later revision |
-| 2. Preprocessing — P2 wavelet denoising | Not retained; P1 remains the current preprocessing choice | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | No |
+| 2. Preprocessing — P2 wavelet denoising | Retained as an alternative preprocessing candidate alongside P1 | P2: EEG db4 wavelet denoising with automatic level (max 5), soft thresholding and automatic per-epoch threshold | P2 improved over P0 and achieved a slightly higher mean subject kappa than P1 (0.743 vs 0.737). However, the gain was small (+0.006), while macro-F1 decreased from 0.683 to 0.677, balanced accuracy from 0.680 to 0.666, and N1 recall from 0.416 to 0.315. P1 was therefore retained because its performance was more balanced across sleep stages. | 2c | Yes — retained alongside P1 after course-environment reproduction |
 | 2. Preprocessing — P3 broken-segment handling | Retained as a data-quality safeguard: exclude complete epochs with simultaneous near-flat EEG and EOG | Flag detected epochs without exclusion; no broken-segment handling | QC identified a sustained simultaneous EEG/EOG near-flat event in SC4012E0; the fixed label-independent rule excluded only the three fully affected epochs (2845–2847). Although mean subject kappa decreased from 0.704 to 0.694 vs P0, the rule was retained because objectively broken epochs should not be treated as valid physiological signal and the same predefined rule can handle similar dropout in additional recordings. | 2d | No — retained for data quality, not classification improvement |
 | 2. Preprocessing — P5 clipping QC | Retained as a quality-control safeguard: flag suspected EEG clipping without signal modification or epoch exclusion | Exclude flagged epochs; interpolate saturated samples; apply generic denoising; ignore suspected clipping | QC found 57/16,688 epochs with repeated recording-specific EEG extrema. P5 preserved all original data and produced exactly the same 16,688 predictions as P0. Flagging was preferred because the lost signal cannot be reliably reconstructed and exclusion of entire 30-second epochs was not justified by the observed short plateaus. | 2e | No — retained for signal-quality documentation, not performance improvement |
+| 2. Preprocessing — P5 additional EEG noise exploration | No additional automatic correction; preserve original signals | Correct abrupt EEG amplitude changes; remove suspected artifacts; correct baseline variations | Exploratory EEG/EOG morphology analysis identified ambiguous candidate events without a reliable criterion to distinguish artifacts from physiological activity. Additional corrections were therefore rejected to avoid unjustified signal modification. | 2e | No — exploratory diagnostics retained, but no new preprocessing transformation |
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
@@ -584,7 +617,7 @@ between iterations. Record what actually happened.
 | 1a | Xingkai | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix |  |
 | 1b | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix | Xingkai |
 | 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing, P2 EEG wavelet denoising and P3 broken-segment detection/exclusion; performed short-window and continuous-duration QC analysis of near-flat segments; ran controlled P0/P1, P0/P2 and P0/P3 LOSO comparisons; analysed subject-wise metrics, stage-wise performance and confusion matrices | Xingkai |
-| 2e | Lili | Designed and implemented P5 suspected EEG clipping detection and recording-level quality flagging; analysed amplitude extrema and plateau durations across six recordings; validated preservation of all signals and labels; exported clipping QC results; performed LOSO evaluation and verified that all 16,688 P5 predictions were identical to P0; documented leakage considerations and limitations | |
+| 2e | Lili | Designed and implemented P5 suspected EEG clipping detection and recording-level quality flagging; analysed amplitude extrema and plateau durations across six recordings; validated preservation of all signals and labels; exported clipping QC results; performed LOSO evaluation and verified that all 16,688 P5 predictions were identical to P0; documented leakage considerations and limitations. Also investigated impulsive EEG disturbances and baseline variations, developed exploratory EEG/EOG event diagnostics, grouped candidate events into episodes, performed morphological verification, and documented the decision not to introduce additional automatic corrections. | |
 
 
 
