@@ -51,30 +51,21 @@ available through `sleepedf.reference.sleep_edf.SleepEDFTrack`.
 
 ## Run
 
-All teammates use **Python 3.11**, matching the course CI, and the committed
-`uv.lock`. The course guide does not prescribe a Python patch version. Install
-[uv](https://docs.astral.sh/uv/getting-started/installation/) (version 0.9.26
-or newer) once, then run this from the repository root after cloning or pulling:
+All teammates use **Python 3.11**, matching the course CI, and the committed `uv.lock`.
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) (version 0.9.26 or newer) once, then run this from the repository root after cloning or pulling:
 
 ```bash
 uv sync --locked
 ```
 
-This creates or synchronizes `.venv`, installs the project in editable mode,
-and includes notebook kernel support. uv can download a Python 3.11 interpreter
-if it is missing. Use the same command on macOS, Linux, and Windows; activation
-is unnecessary when running commands through `uv run`. Systems without a
-compatible prebuilt package may need build tools.
+This creates or synchronizes `.venv`, installs the project in editable mode, and includes notebook kernel support. uv can download a Python 3.11 interpreter if it is missing. Use the same command on macOS, Linux, and Windows; activation
+is unnecessary when running commands through `uv run`.
 
-The direct dependency versions match the course requirements files: NumPy 2.2.6,
-SciPy 1.15.3, scikit-learn 1.7.2, Matplotlib 3.10.9, PyWavelets 1.8.0,
-Pillow 12.2.0, imbalanced-learn 0.14.2, MNE 1.10.1 and WFDB 4.3.0.
-PyWavelets and imbalanced-learn support the supplied wavelet and SMOTE/ADASYN
-options; MNE and WFDB are the course real-data dependencies. `pyproject.toml`
-mirrors these pins, while `uv.lock` also fixes their transitive dependencies and
-the project’s notebook tools. Platform-specific supporting packages may differ
-by operating system. Select this repository's `.venv` as your editor's Python
-interpreter and notebook kernel.
+The direct dependency versions match the course requirements files: NumPy 2.2.6, SciPy 1.15.3, scikit-learn 1.7.2, Matplotlib 3.10.9, PyWavelets 1.8.0, Pillow 12.2.0, imbalanced-learn 0.14.2, MNE 1.10.1 and WFDB 4.3.0.
+
+PyWavelets and imbalanced-learn support the supplied wavelet and SMOTE/ADASYN options; MNE and WFDB are the course real-data dependencies. `pyproject.toml` mirrors these pins, while `uv.lock` also fixes their transitive dependencies and
+the project’s notebook tools. Platform-specific supporting packages may differ by operating system. Select this repository's `.venv` as your editor's Python interpreter and notebook kernel.
 
 Check the installed environment:
 
@@ -85,19 +76,16 @@ uv run --locked python -c "import numpy, scipy, sklearn, mne; print(numpy.__vers
 
 These should show Python 3.11.x and `2.2.6 1.15.3 1.7.2 1.10.1`.
 
-Commit and share **`.python-version`, `pyproject.toml`, and `uv.lock` together**,
-along with the course requirements files when those pins change.
-Each teammate creates their own local `.venv` (already ignored by Git). Use
-`uv sync --locked` after pulling dependency changes. `--locked` refuses an
-outdated lockfile instead of silently changing the team's versions. See
-[uv's locking and syncing documentation](https://docs.astral.sh/uv/concepts/projects/sync/).
+Commit and share **`.python-version`, `pyproject.toml`, and `uv.lock` together**, along with the course requirements files when those pins change.
+
+Each teammate creates their own local `.venv` (already ignored by Git). Use `uv sync --locked` after pulling dependency changes. `--locked` refuses an outdated lockfile instead of silently changing the team's versions. See [uv's locking and syncing documentation](https://docs.astral.sh/uv/concepts/projects/sync/).
 
 Run the project with the shared environment:
 
 ```bash
 # Offline synthetic check and regression tests
-uv run --locked python -B scripts/smoke_test.py
-uv run --locked python -B -m unittest discover -s tests -v
+uv run --locked python scripts/smoke_test.py
+uv run --locked python -m unittest discover -s tests -v
 
 # Evaluate every PSG/hypnogram pair already in the local cache
 uv run --locked python -B scripts/run_baseline.py --cache-dir sleep_edf_data
