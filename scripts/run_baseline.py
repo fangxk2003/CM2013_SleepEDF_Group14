@@ -296,7 +296,7 @@ def run(args, parser, *, clf=None, classifier_info=None, seed=0,
         "source_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "working_tree_status": subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True),
         "source_sha256": {str(p.relative_to(ROOT)): sha256(p) for p in sorted(
-            list((ROOT / "src").rglob("*.py")) + list((ROOT / "scripts").glob("*.py")) +
+            list((ROOT / "src").rglob("*.py")) + list((ROOT / "scripts").rglob("*.py")) +
             list(ROOT.glob("*.py")))},
     }
     output.mkdir(parents=True, exist_ok=False)

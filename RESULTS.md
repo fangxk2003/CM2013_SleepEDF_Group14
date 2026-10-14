@@ -1,5 +1,7 @@
 # Results log — `Sleep EDF`, `Group 14`
 
+For a guide to the saved files and comparisons, see [the results index](results/README.md). For your first experiment, see [getting started](docs/GETTING_STARTED.md). Diagnostic script paths below reflect the current folder structure; historical metrics and result directories are retained.
+
 > It exists because Chapter 16 §16.3 defines an iteration as *done* only when it 
 >
 > (1) runs end to end to a result
@@ -234,7 +236,7 @@ Artifacts:
 - `clipping_qc.json`
 
 Independent validation:
-`python scripts/test_p5_flags.py`
+`python scripts/diagnostics/check_p5_flags.py`
 
 P0/P5 prediction comparison:
 16,688 identical predictions; 0 differences.
@@ -265,10 +267,10 @@ This decision avoids introducing potentially unjustified signal modifications. T
 
 **Diagnostic scripts and outputs.**
 
-- `scripts/diagnose_p5_other_noise.py`
-- `scripts/diagnose_p5_eeg_eog_events.py`
-- `scripts/plot_p5_noise_examples.py`
-- `scripts/plot_p5_event_morphology.py`
+- `scripts/diagnostics/diagnose_p5_other_noise.py`
+- `scripts/diagnostics/diagnose_p5_eeg_eog_events.py`
+- `scripts/diagnostics/plot_p5_noise_examples.py`
+- `scripts/diagnostics/plot_p5_event_morphology.py`
 - `results/p5_diagnostics/`
 
 ### P3 Broken-segment handling - Lili - 2026-10-06

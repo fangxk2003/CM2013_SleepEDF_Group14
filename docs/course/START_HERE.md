@@ -1,5 +1,7 @@
 # Start here — capstone tracks (students)
 
+**Original course learning path.** For commands for this Sleep-EDF project, use [Getting started](../GETTING_STARTED.md). Cross-track notebook paths below refer to the [full course checkout](../../../reference/CM2013/).
+
 You will take **one real biomedical signal** through the **whole pipeline** you learned in the course,
 and present it beside other teams' signals. Everyone uses the same methods; the payoff is seeing how
 they behave differently on EEG vs ECG vs IMU vs EMG vs CTG.
@@ -60,7 +62,7 @@ strengths suggest, and record who actually did what (`results_log_TEMPLATE.md` h
 Chapter 16 §16.3 calls an iteration finished only when it (1) runs end to end to a result, (2) reports
 the primary metric **with its spread** across subjects/records/folds, (3) is committed with a note of
 what changed and why, and (4) beats the previous iteration — or explains in writing why the change was
-kept anyway. Copy **[`results_log_TEMPLATE.md`](results_log_TEMPLATE.md)** into your team repo as
+kept anyway. Copy **[`results_log_TEMPLATE.md`](../../../reference/CM2013/tracks/results_log_TEMPLATE.md)** into your team repo as
 `RESULTS.md` on day one and add a row each time; `rep["summary"]` from `evaluate()` prints the metric
 in exactly the required shape.
 
@@ -119,7 +121,7 @@ a project session, within one week of the grade being posted.
 ## The three golden rules (you will be graded on these)
 
 1. **No leakage.** Never let the same subject/record appear in train and test; fit scalers and any
-   feature/spatial selection **inside** each CV fold. See `../docs/LEAKAGE.md`.
+   feature/spatial selection **inside** each CV fold. The course handout refers to `../docs/LEAKAGE.md`, which is absent from the supplied checkout; see [this project's validation guidance](../ARCHITECTURE.md) for the implemented subject-wise split.
 2. **Honest metrics.** Never accuracy alone — report Cohen's κ, macro-F1, and the confusion matrix.
    State the **split unit** (and evaluation mode) with **every** number, and quote the metric **with
    its spread** ("mean κ 0.61, range 0.34–0.73 across 8 subjects"), never the pooled number alone.

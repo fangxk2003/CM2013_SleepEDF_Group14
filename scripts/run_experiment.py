@@ -1,6 +1,6 @@
 """Evaluate a preprocessing/model combination on local Sleep-EDF recordings.
 
-Example: .venv/bin/python run_experiment.py --preprocess bandpass --model rbf_svm --n-subjects 3
+Example: uv run --locked python -B scripts/run_experiment.py --preprocess bandpass --model rbf_svm --n-subjects 3
 Outputs: report.json and provenance.json in a new results directory.
 """
 from __future__ import annotations

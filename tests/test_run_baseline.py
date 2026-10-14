@@ -233,6 +233,10 @@ class RunnerIntegrationTests(unittest.TestCase):
             expected_files = {path.name for path in cache.glob("*.edf") if path != excluded}
             self.assertEqual({entry["path"] for entry in provenance["files"]}, expected_files)
             self.assertEqual(len(provenance["files"]), 12)
+            diagnostic = "scripts/diagnostics/check_p5_flags.py"
+            self.assertEqual(provenance["source_sha256"][diagnostic],
+                             runner.sha256(ROOT / diagnostic))
+            self.assertNotIn("scripts/test_p5_flags.py", provenance["source_sha256"])
             saved_report = json.loads((output / "report.json").read_text())
             self.assertEqual(saved_report["y_pred"], labels.tolist())
 

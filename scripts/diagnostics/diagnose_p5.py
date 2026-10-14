@@ -1,9 +1,8 @@
 
 """Inspect high-amplitude EEG transients before defining P5."""
 
-import _bootstrap
+from _paths import ROOT
 
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +10,6 @@ import numpy as np
 from sleepedf import SleepEDFTrack
 
 
-ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "sleep_edf_data"
 OUTPUT = ROOT / "results" / "p5_diagnostics"
 

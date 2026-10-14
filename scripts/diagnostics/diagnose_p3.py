@@ -1,14 +1,12 @@
 """Diagnose near-flat / dropout epochs before defining P3 thresholds."""
 
-import _bootstrap
+from _paths import ROOT
 
-from pathlib import Path
 import numpy as np
 
 from sleepedf import SleepEDFTrack
 
 
-ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "sleep_edf_data"
 
 

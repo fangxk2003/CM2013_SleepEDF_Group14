@@ -1,5 +1,15 @@
 # Pipeline architecture
 
+Start with [Getting started](GETTING_STARTED.md) to run the pipeline, then use this guide to find the stage you want to change.
+
+| Stage | What it does | Edit here |
+| --- | --- | --- |
+| Preprocessing | Changes or checks raw epoch signals before calculating features | [preprocessing/](../src/sleepedf/preprocessing/) |
+| Feature extraction | Converts each epoch into a row of measurements | [feature_extraction/](../src/sleepedf/feature_extraction/) |
+| Machine learning | Learns from feature rows and predicts stages on held-out subjects | [machine_learning/](../src/sleepedf/machine_learning/) |
+
+[track.py](../src/sleepedf/track.py) connects these stages. Command-line scripts live in [scripts/](../scripts/); detailed P3/P5 analyses live in [scripts/diagnostics/](../scripts/diagnostics/).
+
 `SleepEDFTrack` in `src/sleepedf/track.py` joins three independently editable stages. It inherits data loading, synthetic data generation and the evaluation harness from `reference/`. The reference code and `bsp/` retain the supplied algorithms; new project work belongs in the three stage packages.
 
 ## 1. Preprocessing
@@ -104,13 +114,12 @@ that preserves recording boundaries and epoch positions.
 
 ## Experiment entrypoint
 
-`run_experiment.py` in the repository root delegates to
-`scripts/run_experiment.py`. It selects a preprocessing transform and model,
+`scripts/run_experiment.py` is the main experiment command, run from the repository root. It selects a preprocessing transform and model,
 then reuses real EDF loading, the existing 11 features, LOSO evaluation and
 report/provenance saving:
 
 ```bash
-.venv/bin/python run_experiment.py --preprocess bandpass --model rbf_svm --n-subjects 3
+uv run --locked python scripts/run_experiment.py --preprocess bandpass --model rbf_svm --subjects 0 1 2 --nights 1 2 --seed 0
 ```
 
 Preprocessing choices are `none`, `bandpass`, `wavelet`, `broken_segments`, and

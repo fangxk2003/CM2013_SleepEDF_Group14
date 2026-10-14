@@ -1,13 +1,10 @@
-from pathlib import Path
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+from _paths import ROOT
 
 from sleepedf.track import SleepEDFTrack
 

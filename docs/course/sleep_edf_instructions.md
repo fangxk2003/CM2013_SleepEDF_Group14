@@ -5,7 +5,7 @@
 These recipes use the supplied reference track. With the project environment
 installed (`uv sync --locked`), import it with
 `from sleepedf.reference.sleep_edf import SleepEDFTrack`. Team experiments use
-`from sleepedf import SleepEDFTrack`; see the repository README for the baseline CLI.
+`from sleepedf import SleepEDFTrack`; see the [project README](../../README.md) and [Getting started](../GETTING_STARTED.md) for the baseline CLI.
 
 > **Before you build — background & literature review.** Refresh the methods and do a short literature
 > review of the application domain using **[`BACKGROUND_MAP.md`](BACKGROUND_MAP.md)** (the "Sleep
