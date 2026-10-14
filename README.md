@@ -28,6 +28,7 @@ The defaults are no preprocessing (P0), 11 supplied features, and a scaled rando
 ```text
 scripts/                  Commands you run
   diagnostics/            Detailed P3/P5 investigations
+  internal/               Shared support code used by the commands
 src/sleepedf/             Pipeline you develop
   preprocessing/          Filters and artifact handling
   feature_extraction/     Numbers describing each epoch

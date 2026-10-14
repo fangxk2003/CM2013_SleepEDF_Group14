@@ -1,7 +1,7 @@
 """Evaluate the supplied baseline on local EDFs, without downloading or tuning.
 
-Run: .venv/bin/python -B scripts/run_baseline.py --cache-dir sleep_edf_data
-Subset: .venv/bin/python -B scripts/run_baseline.py --n-subjects 3 --nights 1 2
+Run: uv run --locked python -B scripts/internal/run_baseline.py --cache-dir sleep_edf_data
+Subset: uv run --locked python -B scripts/internal/run_baseline.py --n-subjects 3 --nights 1 2
 Outputs: a timestamped results directory with report.json and provenance.json.
 """
 from __future__ import annotations
@@ -16,16 +16,21 @@ import platform
 import re
 import subprocess
 
-import _bootstrap  # Make src/ importable when run directly.
+if __package__:
+    from ._bootstrap import ROOT
+else:
+    # Direct invocation (and file-based import) needs scripts/ on the import path.
+    import sys
+    scripts_dir = str(Path(__file__).resolve().parents[1])
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    from internal._bootstrap import ROOT
 
 import numpy as np
 
 from sleepedf.machine_learning import default_baseline, evaluate_loso
 from sleepedf import SleepEDFTrack
 from sleepedf.preprocessing.experiments import TargetedDenoising
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def json_ready(value):

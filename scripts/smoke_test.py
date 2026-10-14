@@ -1,4 +1,4 @@
-import _bootstrap  # Make src/ importable when run directly.
+import internal._bootstrap  # Make src/ importable when run directly.
 
 import numpy as np
 from sleepedf.machine_learning import default_baseline

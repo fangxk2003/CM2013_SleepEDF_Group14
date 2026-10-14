@@ -8,8 +8,8 @@ from __future__ import annotations
 import argparse
 import math
 
-import _bootstrap  # Make src/ importable without an editable installation.
-import run_baseline as baseline_runner
+import internal._bootstrap  # Make src/ importable without an editable installation.
+from internal import run_baseline as baseline_runner
 
 from sklearn.base import BaseEstimator
 

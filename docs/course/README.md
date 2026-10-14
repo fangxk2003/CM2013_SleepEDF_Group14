@@ -17,7 +17,7 @@ The course [results-log template](../../../reference/CM2013/tracks/results_log_T
 This handout retains the course's cross-track context. In this Sleep-EDF team
 repository, use `from sleepedf import SleepEDFTrack` for the project pipeline,
 `from sleepedf.reference.sleep_edf import SleepEDFTrack` for the supplied recipes,
-and `scripts/run_baseline.py` for baseline evaluation. Other track modules and
+and `scripts/run_experiment.py` for baseline evaluation. Other track modules and
 course-wide tooling listed below belong to the original course repository.
 
 ## The two-layer rule

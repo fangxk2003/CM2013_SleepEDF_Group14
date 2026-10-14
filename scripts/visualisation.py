@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import argparse
 
-import _bootstrap  # Make src/ importable when run directly.
+import internal._bootstrap  # Make src/ importable when run directly.
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -41,6 +41,8 @@ No Windows feature matrix or trained forest was available locally. Locating the 
 
 ## Saved evidence and reproduction
 
+The shared harness now lives in `scripts/internal/run_baseline.py`. The capture wrapper uses that current import path; the saved captures below retain their original source hashes and results. New captures would record the reorganized source paths.
+
 - `comparison.json`: complete equality checks and historical comparisons.
 - `runs/`: feature, label and group arrays, reports, provenance, environment details and fitted-tree signatures for all five captures.
 - `logs/`: complete output from each P1 run.

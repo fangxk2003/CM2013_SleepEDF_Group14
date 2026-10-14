@@ -77,7 +77,13 @@ Models are `random_forest`, `logistic_regression`, `rbf_svm` and optional `xgboo
 
 Use `--subjects` or `--n-subjects`, together with `--nights`, to keep the cohort explicit. Selection happens before EDF loading and hashing. Each selected PSG must have one matching hypnogram. `--cache-dir` changes the cache location and `--output-dir <new-directory>` selects a fresh output folder; existing output directories are never overwritten.
 
-The older `scripts/run_baseline.py` uses the same loading/evaluation workflow and retains its earlier output naming. It remains available for reproducing historical commands; new comparisons can use the main runner.
+Shared loading and evaluation code lives in `scripts/internal/run_baseline.py`; the import helper lives in `scripts/internal/_bootstrap.py`. The public experiment command uses both. For reproducing a historical baseline's output naming, the shared runner can also be invoked directly:
+
+```bash
+uv run --locked python scripts/internal/run_baseline.py --subjects 0 1 2 --nights 1 2
+```
+
+Use `scripts/run_experiment.py` for new experiments.
 
 XGBoost is optional:
 

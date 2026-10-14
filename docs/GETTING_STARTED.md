@@ -64,7 +64,54 @@ uv run --locked python scripts/visualisation_results.py results/<your-run-folder
 
 Replace `<your-run-folder>` with the folder printed by the experiment. Open `results/visualisations/index.html` after plotting. Running the plotting script without a selection compares all saved runs recursively, including historical investigations.
 
-## 5. Make one change and compare fairly
+## 5. Use machine learning to predict sleep stages
+
+You can compare models now, without writing new features. The pipeline already converts each epoch into **11 features**: EEG band powers and signal measurements, EOG movement, and EMG strength. A model learns how those feature values relate to the labelled stages, then predicts stages for subjects it did not train on.
+
+Choose a model with `--model`:
+
+| Choice | Plain-language idea | Where its factory lives |
+| --- | --- | --- |
+| `random_forest` | Many decision trees vote for a stage; this is the baseline | [baseline.py](../src/sleepedf/machine_learning/baseline.py) |
+| `logistic_regression` | Uses a weighted combination of features to separate stages | [logistic_regression.py](../src/sleepedf/machine_learning/logistic_regression.py) |
+| `rbf_svm` | Uses curved boundaries to separate stages in feature space | [svm.py](../src/sleepedf/machine_learning/svm.py) |
+| `xgboost` | Builds trees in sequence, each improving on earlier errors; optional | [xgboost.py](../src/sleepedf/machine_learning/xgboost.py) |
+
+These commands change **only the model**. All use subjects 0, 1 and 2, both nights, seed 0, the same 11 features, and P0 preprocessing (`--preprocess none`). Each writes to a separate new folder. Run each once; use a new output folder name when rerunning because existing folders are never overwritten.
+
+```bash
+# Random-forest baseline
+uv run --locked python scripts/run_experiment.py --subjects 0 1 2 --nights 1 2 --seed 0 --preprocess none --model random_forest --output-dir results/first_ml_random_forest
+
+# Change the model to logistic regression
+uv run --locked python scripts/run_experiment.py --subjects 0 1 2 --nights 1 2 --seed 0 --preprocess none --model logistic_regression --output-dir results/first_ml_logistic_regression
+
+# Change the model to an RBF support-vector machine
+uv run --locked python scripts/run_experiment.py --subjects 0 1 2 --nights 1 2 --seed 0 --preprocess none --model rbf_svm --output-dir results/first_ml_rbf_svm
+```
+
+For optional XGBoost, install and run with the extra enabled:
+
+```bash
+uv sync --locked --extra xgboost
+uv run --locked --extra xgboost python scripts/run_experiment.py --subjects 0 1 2 --nights 1 2 --seed 0 --preprocess none --model xgboost --output-dir results/first_ml_xgboost
+```
+
+Every model uses the same subject-wise LOSO evaluation described above. The random forest, logistic regression and SVM pipelines fit their scalers **inside each training fold**, then apply them to that fold's test subject. XGBoost uses tree features without a scaler. Do not scale all subjects together before evaluation, or train a model once on all subjects and score it on those same subjects.
+
+Compare the exact two run folders you want, for example:
+
+```bash
+uv run --locked python scripts/visualisation_results.py results/first_ml_random_forest results/first_ml_logistic_regression --output-dir results/first_ml_comparison
+```
+
+Open `results/first_ml_comparison/index.html`. Inspect κ, macro-F1, stage confusion and variation between subjects; check each run's provenance to confirm the same inputs and preprocessing. Repeat with `results/first_ml_rbf_svm` or `results/first_ml_xgboost` if you ran them. A higher score on this small cohort is a reason to investigate, not proof that a model is best for all subjects.
+
+Each run's `report.json` contains held-out predictions and evaluation metrics; `provenance.json` records the model settings and inputs. These commands train a separate model for each fold and save **evaluation outputs**, not one fitted final model for deployment or a hold-out submission CSV.
+
+When you want to change model settings in Python, start at [machine_learning/models.py](../src/sleepedf/machine_learning/models.py), which selects the factories listed above. Edit a factory to change its defaults; the current CLI selects a model and seed, but does not expose every tuning parameter. Use [Architecture](ARCHITECTURE.md) for the optional `make_model()` / `evaluate_loso()` Python example and tuning guidance. Keep tuning within training subjects and record your choices in [RESULTS.md](../RESULTS.md).
+
+## 6. Make one change and compare fairly
 
 Keep the same subjects, nights and seed while changing one stage, for example:
 

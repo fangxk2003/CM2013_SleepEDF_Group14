@@ -16,7 +16,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 spec = importlib.util.spec_from_file_location(
-    "baseline_runner_under_test", ROOT / "scripts" / "run_baseline.py")
+    "baseline_runner_under_test", ROOT / "scripts" / "internal" / "run_baseline.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
 
@@ -237,6 +237,11 @@ class RunnerIntegrationTests(unittest.TestCase):
             self.assertEqual(provenance["source_sha256"][diagnostic],
                              runner.sha256(ROOT / diagnostic))
             self.assertNotIn("scripts/test_p5_flags.py", provenance["source_sha256"])
+            for internal in ("run_baseline.py", "_bootstrap.py"):
+                path = f"scripts/internal/{internal}"
+                self.assertEqual(provenance["source_sha256"][path],
+                                 runner.sha256(ROOT / path))
+                self.assertNotIn(f"scripts/{internal}", provenance["source_sha256"])
             saved_report = json.loads((output / "report.json").read_text())
             self.assertEqual(saved_report["y_pred"], labels.tolist())
 

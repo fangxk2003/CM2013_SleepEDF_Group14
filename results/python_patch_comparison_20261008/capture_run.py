@@ -46,7 +46,7 @@ def main():
     sys.path[:0] = [str(root / "scripts"), str(root / "src"), str(site_packages)]
 
     import numpy as np
-    import run_baseline
+    from internal import run_baseline
     from sklearn.pipeline import Pipeline
     from threadpoolctl import threadpool_info
 
@@ -111,7 +111,7 @@ def main():
     run_baseline.SleepEDFTrack.build_dataset = capture_dataset
     Pipeline.fit = capture_fit
     sys.argv = [
-        str(root / "scripts" / "run_baseline.py"), "--subjects", "0", "1", "2",
+        str(root / "scripts" / "internal" / "run_baseline.py"), "--subjects", "0", "1", "2",
         "--nights", "1", "2", "--preprocess", "bandpass",
         "--cache-dir", str(root / "sleep_edf_data"), "--output-dir", str(output),
     ]

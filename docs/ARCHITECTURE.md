@@ -132,7 +132,7 @@ Outputs are `report.json` and `provenance.json` in a unique directory such as
 `results/real__P1_rbf_svm_<UTC timestamp>/`, with the model included in the name.
 Provenance records the selected model and factory settings alongside the seed,
 preprocessing, EDF hashes, feature names, source hashes and environment versions.
-`scripts/run_baseline.py` retains its existing behavior.
+The shared loading/evaluation implementation is in `scripts/internal/run_baseline.py`. It retains the historical baseline behavior and output naming when invoked directly; everyday experiments use `scripts/run_experiment.py`. `scripts/internal/_bootstrap.py` makes `src/` importable for the script commands.
 
 ## Verification
 

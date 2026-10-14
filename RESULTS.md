@@ -1,6 +1,6 @@
 # Results log — `Sleep EDF`, `Group 14`
 
-For a guide to the saved files and comparisons, see [the results index](results/README.md). For your first experiment, see [getting started](docs/GETTING_STARTED.md). Diagnostic script paths below reflect the current folder structure; historical metrics and result directories are retained.
+For a guide to the saved files and comparisons, see [the results index](results/README.md). For your first experiment, see [getting started](docs/GETTING_STARTED.md). Script paths below reflect the current folder structure, including the shared baseline runner in `scripts/internal/`; historical metrics and result directories are retained.
 
 > It exists because Chapter 16 §16.3 defines an iteration as *done* only when it 
 >
@@ -151,7 +151,7 @@ Reproduce from the team repository root:
 uv sync --locked
 uv run --locked python -B scripts/smoke_test.py
 uv run --locked python -B -m unittest discover -s tests -v
-uv run --locked python -B scripts/run_baseline.py --subjects 0 1 2 --nights 1 2
+uv run --locked python -B scripts/internal/run_baseline.py --subjects 0 1 2 --nights 1 2
 ```
 
 
@@ -224,7 +224,7 @@ The current detector identifies repeated extrema within individual epochs and do
 **Reproducibility.**
 
 Command:
-`python scripts/run_baseline.py --preprocess denoise_clipping`
+`python scripts/internal/run_baseline.py --preprocess denoise_clipping`
 
 Output directory:
 `results/real__P5_20261008T100803267247Z/`
@@ -395,7 +395,7 @@ subset is a baseline reference, not an untouched final test cohort.
 Reproduce from the repository root:
 
 ```bash
-.venv/bin/python -B run_baseline.py --cache-dir sleep_edf_data
+.venv/bin/python -B scripts/internal/run_baseline.py --cache-dir sleep_edf_data --subjects 0 1 2 --nights 1
 ```
 
 The runner evaluates every PSG/hypnogram pair under the cache directory. This run
