@@ -114,15 +114,6 @@ spread is half a result.
 | `eog_movement` | 1.042046e-05 | 8.424379e-06 | 1.738589e-06 | 8.692221e-06 | 8.114621e-05 |
 | `emg_rms` | 2.798696e-06 | 1.021178e-06 | 1.098497e-07 | 3.274786e-06 | 3.654510e-06 |
 
-## Summary
-
-All validation checks passed:
-
-- ✅ **Feature consistency:** 11 features in the expected order.
-- ✅ **Row alignment:** 8,256 feature rows, labels, and subject-group entries.
-- ✅ **Subject alignment:** All three subjects have matching label and feature-row counts.
-- ✅ **Data integrity:** No NaN or infinite values detected.
-
 
 ### Tested Model XGBoost - Xingkai - 2026-10-08
 
