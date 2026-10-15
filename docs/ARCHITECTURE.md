@@ -8,9 +8,7 @@ Start with [Getting started](GETTING_STARTED.md) to run the pipeline, then use t
 | Feature extraction | Converts each epoch into a row of measurements | [feature_extraction/](../src/sleepedf/feature_extraction/) |
 | Machine learning | Learns from feature rows and predicts stages on held-out subjects | [machine_learning/](../src/sleepedf/machine_learning/) |
 
-[track.py](../src/sleepedf/track.py) connects these stages. Command-line scripts live in [scripts/](../scripts/); detailed P3/P5 analyses live in [scripts/diagnostics/](../scripts/diagnostics/).
-
-`SleepEDFTrack` in `src/sleepedf/track.py` joins three independently editable stages. It inherits data loading, synthetic data generation and the evaluation harness from `reference/`. The reference code and `bsp/` retain the supplied algorithms; new project work belongs in the three stage packages.
+[track.py](../src/sleepedf/track.py) connects these stages.
 
 ## 1. Preprocessing
 
@@ -114,25 +112,19 @@ that preserves recording boundaries and epoch positions.
 
 ## Experiment entrypoint
 
-`scripts/run_experiment.py` is the main experiment command, run from the repository root. It selects a preprocessing transform and model,
-then reuses real EDF loading, the existing 11 features, LOSO evaluation and
-report/provenance saving:
+`scripts/run_experiment.py` is the main experiment command, run from the repository root. It selects a preprocessing transform and model, then reuses real EDF loading, the existing 11 features, LOSO evaluation and report/provenance saving:
 
 ```bash
 uv run --locked python scripts/run_experiment.py --preprocess bandpass --model rbf_svm --subjects 0 1 2 --nights 1 2 --seed 0
 ```
 
-Preprocessing choices are `none`, `bandpass`, `wavelet`, `broken_segments`, and
-`denoise_clipping`; model choices are the four registry names above. Defaults are
-`none`, `random_forest`, and seed 0. The runner supports `--seed`,
-`--subjects`/`--n-subjects`, `--nights`, `--cache-dir`, and `--output-dir`.
+Preprocessing choices are `none`, `bandpass`, `wavelet`, `broken_segments`, and `denoise_clipping`; model choices are the four registry names above. Defaults are `none`, `random_forest`, and seed 0. The runner supports `--seed`, `--subjects`/`--n-subjects`, `--nights`, `--cache-dir`, and `--output-dir`.
+
 It uses cached real EDFs and performs no downloads or tuning. P5 is flag-only.
 
-Outputs are `report.json` and `provenance.json` in a unique directory such as
-`results/real__P1_rbf_svm_<UTC timestamp>/`, with the model included in the name.
-Provenance records the selected model and factory settings alongside the seed,
-preprocessing, EDF hashes, feature names, source hashes and environment versions.
-The shared loading/evaluation implementation is in `scripts/internal/run_baseline.py`. It retains the historical baseline behavior and output naming when invoked directly; everyday experiments use `scripts/run_experiment.py`. `scripts/internal/_bootstrap.py` makes `src/` importable for the script commands.
+Outputs are `report.json` and `provenance.json` in a unique directory such as `results/real__P1_rbf_svm_<UTC timestamp>/`, with the model included in the name.
+
+Provenance records the selected model and factory settings alongside the seed, preprocessing, EDF hashes, feature names, source hashes and environment versions. The shared loading/evaluation implementation is in `scripts/internal/run_baseline.py`. It retains the historical baseline behavior and output naming when invoked directly; everyday experiments use `scripts/run_experiment.py`. `scripts/internal/_bootstrap.py` makes `src/` importable for the script commands.
 
 ## Verification
 
