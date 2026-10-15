@@ -53,7 +53,75 @@ spread is half a result.
 ## Detailed log
 
 (new entry inserted to the top)
+### Feature check - Lucas - 2026-10-15
 
+## Check 1: Feature Names & Ordering
+
+**Number of features:** 11
+
+| Column | Feature Name |
+|---:|---|
+| 0 | `eeg_delta` |
+| 1 | `eeg_theta` |
+| 2 | `eeg_alpha` |
+| 3 | `eeg_sigma` |
+| 4 | `eeg_beta` |
+| 5 | `eeg_hjorth_activity` |
+| 6 | `eeg_hjorth_mobility` |
+| 7 | `eeg_hjorth_complexity` |
+| 8 | `eeg_spec_entropy` |
+| 9 | `eog_movement` |
+| 10 | `emg_rms` |
+
+## Check 2: Row Alignment
+
+| Dataset | Shape |
+|---|---|
+| Features (`X`) | (`8256, 11`) |
+| Labels (`y`) | (`8256,`) |
+| Subject Groups (`groups`) | (`8256,`) |
+
+### Subject-Level Alignment
+
+| Subject | Recording ID | Number of Labels | Number of Feature Rows | Status |
+|---|---|---:|---:|---|
+| SC400 | `SC4001E0` | 2,650 | 2,650 |  Matched |
+| SC401 | `SC4011E0` | 2,802 | 2,802 |  Matched |
+| SC402 | `SC4021E0` | 2,804 | 2,804 |  Matched |
+| **Total** | — | **8,256** | **8,256** | **Matched** |
+
+## Check 3: Data Integrity (NaNs / Infs)
+
+| Validation | Result |
+|---|---|
+| Contains NaNs |  No |
+| Contains Infs |  No |
+| All values finite |  Yes |
+
+### Feature Summary Statistics
+
+| Feature | Mean | Std | Min | Median (50%) | Max |
+|---|---:|---:|---:|---:|---:|
+| `eeg_delta` | 3.541499e-10 | 3.062089e-10 | 8.961040e-12 | 2.732166e-10 | 2.488320e-09 |
+| `eeg_theta` | 2.511438e-11 | 1.955244e-11 | 1.229510e-12 | 2.019621e-11 | 1.803406e-10 |
+| `eeg_alpha` | 3.831991e-12 | 2.561465e-12 | 3.812442e-13 | 3.283522e-12 | 2.103810e-11 |
+| `eeg_sigma` | 3.219647e-12 | 2.437007e-12 | 3.164061e-13 | 2.459242e-12 | 2.221975e-11 |
+| `eeg_beta` | 4.662853e-12 | 5.336720e-12 | 2.245446e-13 | 2.277434e-12 | 4.619777e-11 |
+| `eeg_hjorth_activity` | 5.668723e-10 | 4.697087e-10 | 1.955764e-11 | 4.379438e-10 | 3.841122e-09 |
+| `eeg_hjorth_mobility` | 2.829099e-01 | 1.131066e-01 | 8.731642e-02 | 2.658017e-01 | 8.508576e-01 |
+| `eeg_hjorth_complexity` | 5.236606e+00 | 1.652451e+00 | 2.007903e+00 | 4.906778e+00 | 1.466623e+01 |
+| `eeg_spec_entropy` | 2.450701e+00 | 3.446285e-01 | 1.329981e+00 | 2.407419e+00 | 3.867844e+00 |
+| `eog_movement` | 1.042046e-05 | 8.424379e-06 | 1.738589e-06 | 8.692221e-06 | 8.114621e-05 |
+| `emg_rms` | 2.798696e-06 | 1.021178e-06 | 1.098497e-07 | 3.274786e-06 | 3.654510e-06 |
+
+## Summary
+
+All validation checks passed:
+
+- ✅ **Feature consistency:** 11 features in the expected order.
+- ✅ **Row alignment:** 8,256 feature rows, labels, and subject-group entries.
+- ✅ **Subject alignment:** All three subjects have matching label and feature-row counts.
+- ✅ **Data integrity:** No NaN or infinite values detected.
 
 
 ### Tested Model XGBoost - Xingkai - 2026-10-08
