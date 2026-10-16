@@ -1,19 +1,27 @@
-"""Download selected Sleep-EDF Sleep-Cassette subjects and nights."""
+"""Download selected Sleep-EDF Sleep-Cassette subjects and nights.
+
+Run from the repository root:
+
+    python scripts/download.py                          # subjects 0 1 2, nights 1 2
+    python scripts/download.py --subjects 0 1 2 3 4     # choose subjects
+    python scripts/download.py --subjects 5 --nights 1  # one night only
+    python scripts/download.py --cache-dir /path/to/data
+    download all 78 subjects: python scripts/download.py --subjects $(seq 0 82)
+
+Files go to <repo>/sleep_edf_data by default. Already-downloaded files are
+reused, and missing recordings are reported as warnings instead of errors.
+"""
 import argparse
 from pathlib import Path
 
 from mne.datasets.sleep_physionet.age import fetch_data
 
-
-def subject_id(value):
-    subject = int(value)
-    if not 0 <= subject <= 82:
-        raise argparse.ArgumentTypeError("subject IDs must be between 0 and 82")
-    return subject
+from internal.cli import subject_id
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--cache-dir", type=Path,
                         default=Path(__file__).resolve().parents[1] / "sleep_edf_data")
     parser.add_argument("--subjects", type=subject_id, nargs="+", default=[0, 1, 2],
