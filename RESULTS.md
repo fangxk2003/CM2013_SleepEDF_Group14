@@ -40,6 +40,7 @@ spread is half a result.
 | 2e | 2026-10-08 | P5: EEG suspected-clipping detection using recording-specific extrema and plateaus of at least 3 consecutive samples (30 ms); 57/16,688 epochs flagged, with no signal modification or exclusion | mean cohens_kappa 0.704 (sd 0.087, range 0.627-0.799 across 3 subjects) | No improvement vs P0; all 16,688 predictions identical (0 differences) | Retained as a label-independent signal-quality safeguard: suspected clipping is documented without reconstructing potentially lost EEG information or altering classification | `c8410dc` |
 | 2ca                                  | 2026-10-08 | Model: XGBoost | mean cohens_kappa 0.754 (sd 0.011, range 0.742-0.765 across 3 subjects) | Yes vs 2c | - | `c85cb4` |
 |                                     |                |                                                              |                                                              |                                                              |                                                              |               |
+| 2f (spindle preservation) | 2026-10-16 | Physiological validation of P1 vs P2 on eight automatically detected spindle candidates in two N2 epochs from SC400; compared sigma power, Hilbert envelope, independent re-detection and temporal matching | N/A — diagnostic analysis only; no new LOSO classification run. P2 sigma-power retention: 27.63% (SD 17.98 pp); P1 re-detection: 8/8; P2: 5/8 at IoU ≥ 0.30 | P1 better preserved the selected spindle candidates; classification performance not reassessed | Retain P1 as the preferred preprocessing candidate; reconsider P2 thresholding before further use, subject to larger-scale validation | `217763e` |
 |  |  |  |  |  |  |  |
 | 4 |  |  |  | yes / no |  |  |
 | 4 |  |  |  | yes / no |  |  |
@@ -51,6 +52,147 @@ spread is half a result.
 *"Better" means better under the same honest harness — same split unit, same evaluation mode, same seed. A change that lowers the metric can still be the right call (simpler, faster, more robust across subjects, removes a leak). Say so in the column instead of quietly reverting it: "kept — κ fell 0.02 but the worst-subject κ rose from 0.18 to 0.31" is a stronger result than a silent higher mean.*
 
 ## Detailed log
+### Physiological preservation of sleep spindles — Lili — 2026-10-16
+
+**Motivation.**
+
+Previous classification experiments showed that both P1 (0.5–40 Hz zero-phase EEG band-pass filtering) and P2 (db4 wavelet denoising with soft thresholding) improved sleep-stage classification relative to P0. However, similar classification scores do not guarantee equivalent preservation of physiologically relevant EEG events.
+
+Sleep spindles are oscillatory events in the sigma frequency range, particularly relevant to stage N2. The objective was to determine whether P1 and P2 preserve the amplitude, spectral content and temporal detectability of spindle-like events observed in the original EEG.
+
+**Dataset and experimental scope.**
+
+The analysis was performed on recording SC400, using two 30-second N2 epochs (indices 1025 and 1637).
+
+Eight spindle candidates were automatically detected in the unprocessed EEG:
+- Epoch 1025: six candidates.
+- Epoch 1637: two candidates.
+
+These events were detected algorithmically and were not independently confirmed by expert annotations. They must therefore be described as spindle candidates rather than validated physiological spindles.
+
+This was a targeted signal-preservation experiment, not a new sleep-stage classification evaluation.
+
+**Methods.**
+
+Three EEG signals were compared:
+- Raw: unprocessed EEG.
+- P1: 0.5–40 Hz zero-phase Butterworth band-pass filtering.
+- P2: db4 wavelet denoising with automatic decomposition level (maximum 5), soft thresholding and an automatically estimated per-epoch VisuShrink threshold.
+
+The evaluation included:
+
+1. Sigma-band (11–16 Hz) power retention relative to Raw.
+2. Hilbert-envelope amplitude retention relative to Raw.
+3. Changes in sigma spectral specificity.
+4. Independent spindle-candidate detection on Raw, P1 and P2.
+5. One-to-one temporal matching using intersection-over-union (IoU).
+6. Sensitivity analysis across IoU thresholds from 0.10 to 0.70.
+7. Inspection of candidate timing near 30-second epoch boundaries.
+
+**Signal-preservation results.**
+
+| Metric | P1 | P2 |
+|---|---|---|
+| Sigma-band power retention | Approximately 100% | 27.63% (SD 17.98 percentage points) |
+| Hilbert-envelope amplitude retention | Approximately 100% | 43.48% (SD 17.79 percentage points) |
+| Mean sigma-power change relative to Raw | Approximately 0 dB | -6.45 dB (SD 3.00 dB) |
+| Mean change in sigma spectral specificity | Approximately unchanged | -33.89% (SD 34.02 percentage points) |
+
+P1 preserved the selected sigma-band oscillations with minimal measurable attenuation.
+
+P2 substantially reduced both sigma-band power and oscillation-envelope amplitude. The effect varied between candidates, indicating that the denoising transformation did not preserve all detected events equally.
+
+The reported SD values describe variability across the eight selected candidates, not variability across independent subjects.
+
+**Independent spindle re-detection.**
+
+Spindle detection was performed independently on each processed signal. Events were matched one-to-one against Raw candidates using temporal IoU ≥ 0.30.
+
+| Metric | Raw | P1 | P2 |
+|---|---:|---:|---:|
+| Detected candidates | 8 | 8 | 9 |
+| Matched Raw candidates | 8 | 8 | 5 |
+| Raw candidates without a match | — | 0 | 3 |
+| Unmatched processed candidates | — | 0 | 4 |
+| Raw-candidate matching rate | — | 100% | 62.5% |
+
+P1 reproduced all eight Raw candidates under the selected matching criterion.
+
+P2 matched five of eight Raw candidates. It also produced four unmatched detections, indicating changes in candidate timing and/or detection behavior after preprocessing.
+
+Unmatched processed detections should not automatically be classified as false positives because the Raw detector is not an expert-annotated reference.
+
+**Sensitivity to the temporal matching threshold.**
+
+| Minimum IoU | P1 matching rate | P2 matching rate |
+|---|---:|---:|
+| 0.10 | 100% | 62.5% |
+| 0.20 | 100% | 62.5% |
+| 0.30 | 100% | 62.5% |
+| 0.40 | 100% | 50.0% |
+| 0.50 | 100% | 37.5% |
+| 0.60 | 100% | 25.0% |
+| 0.70 | 100% | 12.5% |
+
+P1 maintained complete matching throughout the tested IoU range.
+
+P2 matching decreased as stricter temporal overlap was required, indicating reduced stability of event boundaries relative to the original signal.
+
+**Epoch-boundary checks.**
+
+All detected candidate intervals had valid durations and remained within the 30-second epoch boundaries.
+
+Some candidates occurred close to the beginning or end of an epoch, including an event ending at 29.95 seconds. These events require additional investigation because filtering and Hilbert-envelope estimation on isolated epochs may introduce boundary effects.
+
+The present analysis does not establish that the observed differences are caused by boundary artifacts.
+
+**Interpretation and decision.**
+
+The analysis provides additional physiological evidence in favor of P1.
+
+Although P2 achieved competitive classification performance in previous development experiments, its current configuration substantially attenuated selected spindle-like oscillations and reduced their temporal re-detectability.
+
+P1 is therefore retained as the preferred preprocessing candidate for subsequent development.
+
+P2 is not considered physiologically equivalent to P1 under the tested settings. Its denoising thresholds should be reconsidered before further use if spindle preservation is an objective.
+
+This is a provisional decision. The analysis involved only eight automatically detected candidates from two epochs in one recording, without expert spindle annotations or independent subject-level validation.
+
+**Limitations and next steps.**
+
+- Extend the analysis to more N2 epochs, recordings and subjects.
+- Investigate events using continuous filtering or neighboring-epoch context.
+- Evaluate alternative P2 thresholding strategies.
+- Assess noise reduction as well as physiological signal preservation.
+- Re-evaluate downstream classification performance with subject-wise splits after any preprocessing change.
+- Keep the final holdout cohort untouched during method development.
+
+**Reproducibility.**
+
+Commit: `217763e`
+
+Scripts:
+- `scripts/visualize_preprocessing.py`
+- `scripts/detect_spindle_candidates.py`
+- `scripts/evaluate_spindle_preservation.py`
+- `scripts/evaluate_spindle_redetection.py`
+- `scripts/evaluate_spindle_matching_sensitivity.py`
+- `scripts/check_spindle_epoch_boundaries.py`
+
+Results:
+- `results/preprocessing_visualization/`
+- `results/spindle_candidates/`
+- `results/spindle_evaluation/`
+- `results/spindle_redetection/`
+
+Quantitative outputs:
+- `results/spindle_candidates/spindle_candidates.csv`
+- `results/spindle_evaluation/preservation_metrics.csv`
+- `results/spindle_evaluation/preservation_summary.csv`
+- `results/spindle_redetection/redetection_events.csv`
+- `results/spindle_redetection/redetection_summary.csv`
+- `results/spindle_redetection/sensitivity/iou_sensitivity.csv`
+- `results/spindle_redetection/sensitivity/matched_boundary_shifts.csv`
 
 (new entry inserted to the top)
 ### Feature check - Lucas - 2026-10-15
@@ -643,6 +785,7 @@ add rows as the pipeline grows, and note the alternative you rejected.
 | 2. Preprocessing — P3 broken-segment handling | Retained as a data-quality safeguard: exclude complete epochs with simultaneous near-flat EEG and EOG | Flag detected epochs without exclusion; no broken-segment handling | QC identified a sustained simultaneous EEG/EOG near-flat event in SC4012E0; the fixed label-independent rule excluded only the three fully affected epochs (2845–2847). Although mean subject kappa decreased from 0.704 to 0.694 vs P0, the rule was retained because objectively broken epochs should not be treated as valid physiological signal and the same predefined rule can handle similar dropout in additional recordings. | 2d | No — retained for data quality, not classification improvement |
 | 2. Preprocessing — P5 clipping QC | Retained as a quality-control safeguard: flag suspected EEG clipping without signal modification or epoch exclusion | Exclude flagged epochs; interpolate saturated samples; apply generic denoising; ignore suspected clipping | QC found 57/16,688 epochs with repeated recording-specific EEG extrema. P5 preserved all original data and produced exactly the same 16,688 predictions as P0. Flagging was preferred because the lost signal cannot be reliably reconstructed and exclusion of entire 30-second epochs was not justified by the observed short plateaus. | 2e | No — retained for signal-quality documentation, not performance improvement |
 | 2. Preprocessing — P5 additional EEG noise exploration | No additional automatic correction; preserve original signals | Correct abrupt EEG amplitude changes; remove suspected artifacts; correct baseline variations | Exploratory EEG/EOG morphology analysis identified ambiguous candidate events without a reliable criterion to distinguish artifacts from physiological activity. Additional corrections were therefore rejected to avoid unjustified signal modification. | 2e | No — exploratory diagnostics retained, but no new preprocessing transformation |
+| 2. Preprocessing — spindle preservation review | Retain P1 as the preferred preprocessing candidate; reconsider P2 denoising thresholds | P2 wavelet denoising under the current settings | P1 preserved all eight Raw spindle candidates at IoU ≥ 0.30, whereas P2 matched only five and retained 27.63% of sigma-band power on average. This provides a physiological reason to favor P1 beyond classification metrics alone. | 2f | Yes — P2 remains an investigated alternative, but its physiological preservation is now a documented concern requiring revision before further use |
 | 3. Feature extraction |  |  |  |  |  |
 | 4. Feature selection | *e.g.* `select="none"` | ANOVA `SelectKBest`, tree importances | 14 features vs. ~1 800 epochs — pruning risked more than it saved | 1 | *e.g.* **yes, iter 4** — `select_k=20` was a no-op (harness said so); switched to `k=6` |
 | 5. Classification, incl. `imbalance` | *e.g.* `imbalance="balanced"` | `"none"`, `"resample"`, `"threshold"` | *(if you kept the default, say you looked and why — a silent default earns nothing)* |  |  |
@@ -679,6 +822,8 @@ between iterations. Record what actually happened.
 | 1b | Lili | Ran and verified the supplied baseline on real Sleep-EDF data; inspected LOSO metrics, subject-wise spread and confusion matrix | Xingkai |
 | 2 | Lili | Signal-quality review; implemented and validated P1 EEG band-pass preprocessing, P2 EEG wavelet denoising and P3 broken-segment detection/exclusion; performed short-window and continuous-duration QC analysis of near-flat segments; ran controlled P0/P1, P0/P2 and P0/P3 LOSO comparisons; analysed subject-wise metrics, stage-wise performance and confusion matrices | Xingkai |
 | 2e | Lili | Designed and implemented P5 suspected EEG clipping detection and recording-level quality flagging; analysed amplitude extrema and plateau durations across six recordings; validated preservation of all signals and labels; exported clipping QC results; performed LOSO evaluation and verified that all 16,688 P5 predictions were identical to P0; documented leakage considerations and limitations. Also investigated impulsive EEG disturbances and baseline variations, developed exploratory EEG/EOG event diagnostics, grouped candidate events into episodes, performed morphological verification, and documented the decision not to introduce additional automatic corrections. | |
+| 2f | Lili | Designed and implemented the spindle-preservation evaluation of P1 and P2; performed automatic spindle-candidate detection, sigma-band power and Hilbert-envelope comparisons, independent re-detection, one-to-one IoU matching, matching-threshold sensitivity analysis and epoch-boundary checks; generated quantitative CSV outputs and diagnostic figures; documented physiological limitations and the resulting preprocessing recommendation. | |
+
 
 
 
