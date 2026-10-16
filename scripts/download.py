@@ -12,6 +12,7 @@ Files go to <repo>/sleep_edf_data by default. Already-downloaded files are
 reused, and missing recordings are reported as warnings instead of errors.
 """
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from mne.datasets.sleep_physionet.age import fetch_data
@@ -29,6 +30,8 @@ def main():
     parser.add_argument("--nights", type=int, nargs="+", choices=[1, 2], default=[1, 2],
                         help="night indices (default: 1 2)")
     parser.add_argument("--base-url", help="optional Sleep-Cassette download URL")
+    parser.add_argument("--workers", type=int, default=4,
+                        help="subjects to download in parallel (default: 4)")
     args = parser.parse_args()
     data_dir = args.cache_dir.resolve()
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -39,8 +42,14 @@ def main():
     fetch_options = {}
     if args.base_url is not None:
         fetch_options["base_url"] = args.base_url
-    recordings = fetch_data(subjects=subjects, recording=nights, path=str(data_dir),
-                            on_missing="warn", **fetch_options)
+    # One fetch_data call per subject, run in threads, so several connections download at once.
+    def fetch_subject(subject):
+        return fetch_data(subjects=[subject], recording=nights, path=str(data_dir),
+                          on_missing="warn", **fetch_options)
+
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        results = list(pool.map(fetch_subject, subjects))
+    recordings = [pair for result in results for pair in result]
     for psg, hypnogram in recordings:
         print("Signals:", psg)
         print("Labels: ", hypnogram)
