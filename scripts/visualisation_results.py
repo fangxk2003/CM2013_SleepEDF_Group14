@@ -17,7 +17,7 @@ import argparse
 from collections import Counter
 import csv
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import html
 import json
@@ -108,7 +108,6 @@ def parse_time(value) -> float | None:
         return None
     try:
         # Timestamps without a zone are treated as UTC, independent of the host.
-        from datetime import timezone
         time = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
         return time.replace(tzinfo=timezone.utc).timestamp() if time.tzinfo is None else time.timestamp()
     except ValueError:
