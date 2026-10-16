@@ -1,3 +1,4 @@
+"""Offline check: the default pipeline runs end to end on synthetic data and repeats."""
 import internal._bootstrap  # Make src/ importable when run directly.
 
 import numpy as np
